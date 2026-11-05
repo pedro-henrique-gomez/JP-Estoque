@@ -384,3 +384,22 @@ tr:last-child td {
 #adminCode {
   max-width: 320px;
 }
+
+.demo-access h2 {
+  font-size: 18px;
+  margin-top: 0;
+}
+.demo-access summary {
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 0;
+}
+.demo-access caption {
+  text-align: left;
+  padding: 12px;
+  font-weight: bold;
+}
+.selected-role {
+  background: #f0f0f0;
+  font-weight: bold;
+}

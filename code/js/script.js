@@ -1,3 +1,11 @@
+import { canManage } from "../ts/access.ts";
+import {
+  currentDemoUser,
+  canReadMaterial,
+  mountDemoAccess,
+} from "../ts/demo-access.ts";
+import { demoStorage } from "../ts/demo-storage.ts";
+
 const seed = [
   {
     id: 1,
@@ -122,27 +130,22 @@ const suppliers = [
     contact: "Contato não informado",
   },
 ];
-const K = "jp_estoque_demo_v01",
-  T = "jp_estoque_updated_v01";
-let data = load(),
-  updated = localStorage.getItem(T) || "Dados demonstrativos",
-  adminUnlocked = false,
+const initial = demoStorage.load(seed);
+let data = initial.materials,
+  updated = initial.updated,
   sourceRows = [],
   sourceHeaders = [],
   staged = [];
-function load() {
-  try {
-    const x = JSON.parse(localStorage.getItem(K));
-    return Array.isArray(x) ? x : structuredClone(seed);
-  } catch {
-    return structuredClone(seed);
-  }
-}
 function save() {
-  localStorage.setItem(K, JSON.stringify(data));
   updated = new Date().toLocaleString("pt-BR");
-  localStorage.setItem(T, updated);
+  if (!demoStorage.save(data, updated))
+    alert(
+      "Armazenamento local indispon?vel. Altera??es mantidas apenas nesta sess?o de teste.",
+    );
   render();
+}
+function visibleData() {
+  return data.filter((row) => canReadMaterial(row.contract));
 }
 function esc(s) {
   return String(s ?? "").replace(
@@ -168,7 +171,7 @@ function filtered() {
   const q = document.getElementById("search").value.toLowerCase().trim(),
     c = document.getElementById("contract").value,
     g = document.getElementById("category").value;
-  return data.filter(
+  return visibleData().filter(
     (r) =>
       (!c || r.contract === c) &&
       (!g || r.category === g) &&
@@ -183,12 +186,12 @@ function filtered() {
 function render() {
   options(
     document.getElementById("contract"),
-    [...new Set(data.map((r) => r.contract))].sort(),
+    [...new Set(visibleData().map((r) => r.contract))].sort(),
     true,
   );
   options(
     document.getElementById("category"),
-    [...new Set(data.map((r) => r.category))].sort(),
+    [...new Set(visibleData().map((r) => r.category))].sort(),
     true,
   );
   const r = filtered();
@@ -205,13 +208,16 @@ function render() {
         )
         .join("")
     : '<tr><td colspan="6" class="empty">Nenhum material encontrado.</td></tr>';
-  document.getElementById("adminRows").innerHTML = data
+  document.getElementById("adminRows").innerHTML = (
+    canManage(currentDemoUser()) ? data : []
+  )
     .map(
       (x) =>
         `<tr><td class="code">${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.contract)}</td><td>${esc(x.qty)} ${esc(x.unit)}</td><td><button class="btn alt smallbtn" onclick="edit(${x.id})">Editar</button></td></tr>`,
     )
     .join("");
   document.getElementById("supplierCards").innerHTML = suppliers
+    .filter((s) => visibleData().some((row) => row.supplier === s.name))
     .map(
       (s) =>
         `<div class="card"><h3>${esc(s.name)}</h3><p><b>Atuação:</b> ${esc(s.areas)}</p><p><b>Contato:</b> ${esc(s.contact)}</p></div>`,
@@ -228,7 +234,7 @@ function hideModal() {
 }
 window.detail = (id) => {
   const x = data.find((v) => v.id === id);
-  if (!x) return;
+  if (!x || !canReadMaterial(x.contract)) return;
   showModal(
     x.name,
     `<div class="detail">${[
@@ -268,7 +274,7 @@ const fields = [
   ["nf", "NF"],
 ];
 window.edit = (id) => {
-  if (!adminUnlocked) return;
+  if (!canManage(currentDemoUser())) return;
   const x = data.find((r) => r.id === id) || {
     id: 0,
     code: "",
@@ -290,9 +296,18 @@ window.edit = (id) => {
   );
   document.getElementById("editForm").onsubmit = (e) => {
     e.preventDefault();
+    if (!canManage(currentDemoUser())) return;
     const fd = new FormData(e.target),
       v = Object.fromEntries(fd.entries());
     v.qty = Number(v.qty);
+    if (
+      !["Contrato A", "Contrato B", "Contrato C", "Contrato D"].includes(
+        v.contract,
+      )
+    ) {
+      alert("Selecione um contrato cadastrado: Contrato A, B, C ou D.");
+      return;
+    }
     if (!Number.isFinite(v.qty) || v.qty < 0) {
       alert("Quantidade inválida");
       return;
@@ -348,17 +363,9 @@ document.getElementById("close").onclick = hideModal;
 document.getElementById("modal").onclick = (e) => {
   if (e.target.id === "modal") hideModal();
 };
-document.getElementById("unlock").onclick = () => {
-  if (document.getElementById("adminCode").value !== "JP2026") {
-    alert("Código incorreto");
-    return;
-  }
-  adminUnlocked = true;
-  document.getElementById("adminLock").classList.add("hidden");
-  document.getElementById("adminArea").classList.remove("hidden");
-};
-document.getElementById("add").onclick = () => edit(0);
+document.getElementById("add").onclick = () => window.edit(0);
 document.getElementById("reset").onclick = () => {
+  if (!canManage(currentDemoUser())) return;
   if (confirm("Restaurar todos os registros fictícios neste navegador?")) {
     data = structuredClone(seed);
     save();
@@ -466,6 +473,8 @@ const aliases = {
   nf: ["nf", "nota fiscal"],
 };
 document.getElementById("file").onchange = async (e) => {
+  if (!canManage(currentDemoUser())) return;
+  const importingUser = currentDemoUser();
   const f = e.target.files[0];
   if (!f) return;
   document.getElementById("previewArea").classList.add("hidden");
@@ -483,6 +492,8 @@ document.getElementById("file").onchange = async (e) => {
         { header: 1, defval: "" },
       );
     }
+    if (currentDemoUser() !== importingUser || !canManage(currentDemoUser()))
+      return;
     if (matrix.length < 2) throw Error("Arquivo sem registros suficientes");
     sourceHeaders = matrix[0].map((x) => String(x).trim());
     sourceRows = matrix.slice(1).filter((r) => r.some((v) => String(v).trim()));
@@ -521,6 +532,7 @@ function loadSheetJS() {
   });
 }
 document.getElementById("preview").onclick = () => {
+  if (!canManage(currentDemoUser())) return;
   const m = {};
   document.querySelectorAll("[data-map]").forEach((s) => {
     if (s.value !== "") m[s.dataset.map] = Number(s.value);
@@ -543,7 +555,13 @@ document.getElementById("preview").onclick = () => {
     x.id = 0;
     x._line = i + 2;
     x._error =
-      !x.code || !x.name || !x.contract || !Number.isFinite(x.qty) || x.qty < 0;
+      !x.code ||
+      !x.name ||
+      !["Contrato A", "Contrato B", "Contrato C", "Contrato D"].includes(
+        x.contract,
+      ) ||
+      !Number.isFinite(x.qty) ||
+      x.qty < 0;
     x._existing = data.find(
       (y) =>
         y.code.toLowerCase() === x.code.toLowerCase() &&
@@ -566,6 +584,7 @@ document.getElementById("preview").onclick = () => {
   document.getElementById("commit").disabled = !!invalid;
 };
 document.getElementById("commit").onclick = () => {
+  if (!canManage(currentDemoUser())) return;
   if (staged.some((x) => x._error)) {
     alert("Corrija as linhas inválidas antes de importar.");
     return;
@@ -654,4 +673,13 @@ document.getElementById("exportConsult").onclick = () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
-render();
+mountDemoAccess(() => {
+  hideModal();
+  staged = [];
+  sourceRows = [];
+  sourceHeaders = [];
+  document.getElementById("file").value = "";
+  document.getElementById("mapping").classList.add("hidden");
+  document.getElementById("previewArea").classList.add("hidden");
+  render();
+});

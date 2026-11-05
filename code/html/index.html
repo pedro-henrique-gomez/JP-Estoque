@@ -20,7 +20,7 @@
           ><button data-page="admin">⚙ &nbsp; Administração</button>
         </nav>
         <div class="sidefoot">
-          Protótipo v0.1 · Dados locais e fictícios<br />Não substitui o
+          Protótipo v0.2 · Dados locais e fictícios<br />Não substitui o
           processo atual da JP.
         </div>
       </aside>
@@ -34,6 +34,41 @@
           </div>
           <span class="pill">● Demonstração local</span>
         </header>
+        <section class="panel demo-access" aria-labelledby="demoTitle">
+          <h2 id="demoTitle">Simulador de permiss?es ? v0.2</h2>
+          <p class="notice">
+            Demonstra??o com usu?rios fict?cios. A sele??o de perfis n?o ?
+            login. Os filtros apenas simulam permiss?es; n?o protegem dados.
+            Armazenamento local exclusivo para testes.
+          </p>
+          <label class="label" for="demoUser"
+            >Selecionar usu?rio fict?cio e perfil (demonstra??o)</label
+          >
+          <select id="demoUser"></select>
+          <p id="demoSummary" class="subtle" aria-live="polite"></p>
+          <details>
+            <summary>Visualizar permiss?es por perfil e contrato</summary>
+            <p id="permissionContext" class="subtle"></p>
+            <div class="tablewrap">
+              <table>
+                <caption>
+                  Matriz demonstrativa de acesso
+                </caption>
+                <thead>
+                  <tr>
+                    <th>Perfil</th>
+                    <th>Contrato A</th>
+                    <th>Contrato B</th>
+                    <th>Contrato C</th>
+                    <th>Contrato D</th>
+                    <th>Cadastros</th>
+                  </tr>
+                </thead>
+                <tbody id="permissionRows"></tbody>
+              </table>
+            </div>
+          </details>
+        </section>
         <section id="consulta">
           <div class="panel">
             <div class="filters">
@@ -106,22 +141,11 @@
         </section>
         <section id="admin" class="hidden">
           <div id="adminLock" class="panel">
-            <h3>Acesso administrativo</h3>
+            <h3>Administra??o demonstrativa</h3>
             <p class="muted">
-              Acesso demonstrativo local. Não é autenticação segura de produção.
-            </p>
-            <label class="label">Código de demonstração</label
-            ><input
-              id="adminCode"
-              type="password"
-              placeholder="Código do protótipo"
-            />
-            <p>
-              <button id="unlock" class="btn">Acessar administração</button>
-            </p>
-            <p class="subtle">
-              Para testar, use <b>JP2026</b>. Em produção haverá login
-              individual e permissões no servidor.
+              Somente o perfil Administrador ativo gerencia cadastros nesta
+              demonstra??o. Selecione o usu?rio fict?cio correspondente no
+              simulador acima. N?o h? login nesta vers?o.
             </p>
           </div>
           <div id="adminArea" class="hidden">
@@ -228,6 +252,6 @@
         <div id="modalBody"></div>
       </div>
     </div>
-    <script src="../js/script.js"></script>
+    <script type="module" src="../js/script.js"></script>
   </body>
 </html>
