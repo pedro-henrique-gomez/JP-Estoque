@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JP Estoque | Terminal de Consulta</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="side">
+        <div class="brand">
+          <img src="../../img/logo.png" alt="Logotipo JP" />
+          <div><b>JP ESTOQUE</b><small>Engenharia e Projetos</small></div>
+        </div>
+        <nav class="nav">
+          <button class="active" data-page="consulta">
+            ⌕ &nbsp; Consultar materiais</button
+          ><button data-page="fornecedores">▣ &nbsp; Fornecedores</button
+          ><button data-page="admin">⚙ &nbsp; Administração</button>
+        </nav>
+        <div class="sidefoot">
+          Protótipo v0.1 · Dados locais e fictícios<br />Não substitui o
+          processo atual da JP.
+        </div>
+      </aside>
+      <main class="main">
+        <header class="top">
+          <div>
+            <h1 id="heading">Terminal de consulta</h1>
+            <div class="muted" id="subtitle">
+              Encontre materiais, saldos e localizações por contrato.
+            </div>
+          </div>
+          <span class="pill">● Demonstração local</span>
+        </header>
+        <section id="consulta">
+          <div class="panel">
+            <div class="filters">
+              <div>
+                <label class="label"
+                  >Buscar por código, material, fabricante, OC ou NF</label
+                ><input
+                  id="search"
+                  placeholder="Ex.: cabo, disjuntor, OC-001..."
+                />
+              </div>
+              <div>
+                <label class="label">Contrato</label
+                ><select id="contract"></select>
+              </div>
+              <div>
+                <label class="label">Categoria</label
+                ><select id="category"></select>
+              </div>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="panel stat">
+              <span>Materiais encontrados</span
+              ><strong id="statProducts">0</strong
+              ><span>Registros na pesquisa</span>
+            </div>
+            <div class="panel stat">
+              <span>Contratos encontrados</span
+              ><strong id="statContracts">0</strong
+              ><span>Contratos com registros</span>
+            </div>
+            <div class="panel stat">
+              <span>Última atualização</span><strong id="statDate">—</strong
+              ><span>Dados locais do navegador</span>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="toolbar">
+              <h3>Materiais cadastrados</h3>
+              <button class="btn alt smallbtn" id="exportConsult">
+                Exportar CSV
+              </button>
+            </div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Material</th>
+                    <th>Contrato</th>
+                    <th>Saldo</th>
+                    <th>Localização</th>
+                    <th>Detalhes</th>
+                  </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <section id="fornecedores" class="hidden">
+          <div class="panel">
+            <div class="toolbar">
+              <h3>Fornecedores cadastrados</h3>
+              <span class="muted">Consulta apenas</span>
+            </div>
+            <div id="supplierCards" class="cards"></div>
+          </div>
+        </section>
+        <section id="admin" class="hidden">
+          <div id="adminLock" class="panel">
+            <h3>Acesso administrativo</h3>
+            <p class="muted">
+              Acesso demonstrativo local. Não é autenticação segura de produção.
+            </p>
+            <label class="label">Código de demonstração</label
+            ><input
+              id="adminCode"
+              type="password"
+              placeholder="Código do protótipo"
+            />
+            <p>
+              <button id="unlock" class="btn">Acessar administração</button>
+            </p>
+            <p class="subtle">
+              Para testar, use <b>JP2026</b>. Em produção haverá login
+              individual e permissões no servidor.
+            </p>
+          </div>
+          <div id="adminArea" class="hidden">
+            <div class="notice">
+              Área administrativa de demonstração: os dados são armazenados
+              apenas neste navegador. Não há sincronização com outros
+              computadores.
+            </div>
+            <div class="tabs">
+              <button class="active" data-tab="records">Cadastros</button
+              ><button data-tab="import">Importar Excel/CSV</button>
+            </div>
+            <div id="records">
+              <div class="panel">
+                <div class="toolbar">
+                  <h3>Gerenciar materiais</h3>
+                  <div>
+                    <button class="btn alt smallbtn" id="reset">
+                      Restaurar dados fictícios
+                    </button>
+                    <button class="btn smallbtn" id="add">
+                      + Novo material
+                    </button>
+                  </div>
+                </div>
+                <div class="tablewrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Código</th>
+                        <th>Material</th>
+                        <th>Contrato</th>
+                        <th>Saldo</th>
+                        <th>Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody id="adminRows"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div id="import" class="hidden">
+              <div class="panel">
+                <h3>Importação com conferência prévia</h3>
+                <p class="muted">
+                  Aceita arquivos .xlsx, .xls e .csv. Para Excel, a leitura
+                  utiliza uma biblioteca externa carregada pela internet; CSV
+                  funciona offline. O importador permite mapear as colunas.
+                </p>
+                <input
+                  type="file"
+                  id="file"
+                  accept=".csv,.xlsx,.xls"
+                  class="fileinput"
+                />
+                <div id="mapping" class="hidden">
+                  <h4>Relacionar colunas da planilha</h4>
+                  <div id="mapFields" class="formgrid"></div>
+                  <p>
+                    <button class="btn" id="preview">
+                      Analisar importação
+                    </button>
+                  </p>
+                </div>
+                <div id="previewArea" class="hidden">
+                  <div id="previewInfo" class="notice"></div>
+                  <div class="tablewrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Código</th>
+                          <th>Material</th>
+                          <th>Contrato</th>
+                          <th>Quantidade</th>
+                          <th>Situação</th>
+                        </tr>
+                      </thead>
+                      <tbody id="previewRows"></tbody>
+                    </table>
+                  </div>
+                  <p>
+                    <button class="btn" id="commit">
+                      Confirmar importação
+                    </button>
+                  </p>
+                </div>
+                <div id="importMessage"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="footer">
+          JP Estoque · Protótipo de consulta · Informações ilustrativas, sem
+          vínculo com o estoque real da JP.
+        </div>
+      </main>
+    </div>
+    <div id="modal" class="modal hidden">
+      <div class="panel">
+        <div class="modalhead">
+          <h3 id="modalTitle">Detalhes</h3>
+          <button id="close" class="btn alt smallbtn">Fechar ✕</button>
+        </div>
+        <div id="modalBody"></div>
+      </div>
+    </div>
+    <script src="../js/script.js"></script>
+  </body>
+</html>
