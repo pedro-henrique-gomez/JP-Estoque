@@ -40,7 +40,7 @@ export function redactDiagnostic(text) {
     .replace(/eyJ[\w-]+\.[\w-]+\.[\w-]+/g, "[REDACTED_JWT]")
     .replace(/(postgres(?:ql)?:\/\/)[^\s]+/gi, "$1[REDACTED]")
     .replace(
-      /((?:password|service_role|secret_key|access_token)\s*[:=]\s*)\S+/gi,
+      /((?:password|service_role|secret_key|jwt_secret|access_token|refresh_token)["']?\s*[:=]\s*["']?)[^\s,"'}]+/gi,
       "$1[REDACTED]",
     );
 }

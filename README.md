@@ -1,4 +1,4 @@
-# JP Estoque 0.6 — validação integrada bloqueada pelo ambiente
+# JP Estoque 0.6 - Supabase local validado
 
 Protótipo local com a identidade visual da JP, materiais e usuários fictícios. Não há autenticação ou banco compartilhado. A seleção de perfil **não é login**; botões e filtros de frontend não protegem dados reais.
 
@@ -68,10 +68,10 @@ Quatro migrações em `supabase/migrations/` preparam catálogo global, saldos/l
 
 ## Estado da integração v0.6
 
-A CLI Supabase 3.0.0 está fixada como ferramenta de desenvolvimento. Este Windows não possui Docker/Podman ou WSL instalado; o runtime nativo completo Supabase não suporta Windows. Não foi possível iniciar GoTrue/PostgREST nem executar os cenários com JWTs reais. A aplicação permanece em demonstração; autenticação online **não está pronta**.
+O stack Supabase local descartável foi validado com PostgreSQL 17.11, GoTrue v2.197.0 e PostgREST v16.5: **18 cenários reais Auth/API aprovados**, com JWTs emitidos pelo Auth. As quatro migrações e as políticas RLS foram preservadas. O aplicativo continua em demonstração; a autenticação online da interface permanece desativada.
 
-`npm run test:integration` executa um preflight local não destrutivo, em cópia isolada da configuração/migrações, e gera `test-results/integration-results.json`. Os 18 cenários obrigatórios permanecem bloqueados, com zero testes Auth executados. O comando retorna código 2; presença da CLI ou do engine não é considerada aprovação da integração. A suíte HTTP real não foi implementada/executada neste ambiente indisponível.
+`npm run test:integration` verifica recursos/portas, inicia uma cópia isolada, executa os cenários HTTP e encerra somente o projeto criado. Requer Docker Linux local, ao menos 4 GiB totais e portas 56320/56321/56322 livres. Credenciais ficam apenas no harness Node; a CLI publica portas locais por padrão em todas as interfaces enquanto os contêineres estiverem ativos. Use ambiente de desenvolvimento confiável.
 
-`npm run verify:v06` executa a regressão local e depois a etapa integrada: deve terminar bloqueado enquanto essa etapa estiver pendente. `test:all` continua sendo a suíte local/nativa; não é uma aprovação de Supabase Auth.
+`npm run verify:v06` executa todas as regressões e a integração. O resultado atual é 80 testes automatizados, 446 verificações PostgreSQL nativas, 72 testes Chromium, TypeScript/build e 18 cenários integrados aprovados. Ausência de runtime permanece bloqueio, nunca aprovação simulada.
 
-Evidências, plano de retomada e diferenças entre testes executados e bloqueados: [relatório v0.6](docs/integracao-v06.md).
+Resultados, evidências e limitações: [relatório v0.6](docs/integracao-v06.md). Não há conexão remota, publicação, alteração no localStorage ou no importador Excel.

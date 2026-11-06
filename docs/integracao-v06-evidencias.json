@@ -1,0 +1,272 @@
+{
+  "version": "0.6.0",
+  "status": "passed",
+  "executed": 18,
+  "passed": 18,
+  "failed": 0,
+  "blocked": 0,
+  "recordedAt": "2026-11-06T04:17:51.104Z",
+  "preservation": {
+    "configUnchanged": true,
+    "migrationsUnchanged": true,
+    "hashes": [
+      {
+        "name": "20261105000100_model.sql",
+        "sha256": "a042583e123e9f1fc927576a9a843c6a80fcc6b1a28889a6eba4c305803feed5"
+      },
+      {
+        "name": "20261105000200_rls.sql",
+        "sha256": "431c4d3dfab112c6a24e5f44e0c588f8d947a3ca4df1701f05f8da5bf48a1632"
+      },
+      {
+        "name": "20261105000300_administration_audit.sql",
+        "sha256": "fe9433436cdc8e80cb649cbb98d6b29fb3ab3c6d97195285b05b8faace1ea4b9"
+      },
+      {
+        "name": "20261105000400_read_projection.sql",
+        "sha256": "fda73a1668f5179cb519d329cd23179776449e33fb6f1a4f650c8ff238dba0f3"
+      }
+    ]
+  },
+  "rls": [
+    {
+      "relname": "audit_events",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "balance_references",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "contract_balances",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "contracts",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "import_batches",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "import_rows",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "locations",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "products",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "profiles",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "suppliers",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "system_settings",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "user_contracts",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    }
+  ],
+  "postgres": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+  "migrations": [
+    {
+      "version": "20261105000100"
+    },
+    {
+      "version": "20261105000200"
+    },
+    {
+      "version": "20261105000300"
+    },
+    {
+      "version": "20261105000400"
+    }
+  ],
+  "services": [
+    "public.ecr.aws/supabase/postgrest:v16.5",
+    "public.ecr.aws/supabase/gotrue:v2.197.0",
+    "public.ecr.aws/supabase/kong:2.8.1",
+    "public.ecr.aws/supabase/postgres:17.11.0.011"
+  ],
+  "cases": [
+    {
+      "id": "login-correct",
+      "status": "passed",
+      "durationMs": 63
+    },
+    {
+      "id": "login-incorrect",
+      "status": "passed",
+      "durationMs": 59
+    },
+    {
+      "id": "jwt-valid",
+      "status": "passed",
+      "durationMs": 21
+    },
+    {
+      "id": "jwt-invalid",
+      "status": "passed",
+      "durationMs": 18
+    },
+    {
+      "id": "refresh",
+      "status": "passed",
+      "durationMs": 84
+    },
+    {
+      "id": "logout",
+      "status": "passed",
+      "durationMs": 76
+    },
+    {
+      "id": "inactive",
+      "status": "passed",
+      "durationMs": 119
+    },
+    {
+      "id": "no-contract",
+      "status": "passed",
+      "durationMs": 100
+    },
+    {
+      "id": "metadata",
+      "status": "passed",
+      "durationMs": 99
+    },
+    {
+      "id": "self-promotion",
+      "status": "passed",
+      "durationMs": 168
+    },
+    {
+      "id": "cross-contract",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "rpc-allowed",
+      "status": "passed",
+      "durationMs": 107
+    },
+    {
+      "id": "rpc-denied",
+      "status": "passed",
+      "durationMs": 93
+    },
+    {
+      "id": "revocation",
+      "status": "passed",
+      "durationMs": 46
+    },
+    {
+      "id": "api-exposure",
+      "status": "passed",
+      "durationMs": 117
+    },
+    {
+      "id": "history",
+      "status": "passed",
+      "durationMs": 39
+    },
+    {
+      "id": "profile-matrix",
+      "status": "passed",
+      "durationMs": 410
+    },
+    {
+      "id": "jwt-expired",
+      "status": "passed",
+      "durationMs": 90111
+    }
+  ],
+  "http": {
+    "POST /auth/v1/admin/users 200": 10,
+    "POST /auth/v1/token 200": 15,
+    "GET /rest/v1/contracts 200": 18,
+    "POST /auth/v1/token 400": 2,
+    "GET /rest/v1/contracts 401": 3,
+    "GET /auth/v1/user 200": 2,
+    "POST /auth/v1/logout 204": 1,
+    "GET /rest/v1/products 200": 11,
+    "GET /rest/v1/contract_balances 200": 13,
+    "GET /rest/v1/suppliers 200": 10,
+    "GET /rest/v1/locations 200": 11,
+    "GET /rest/v1/balance_references 200": 11,
+    "GET /rest/v1/import_batches 200": 2,
+    "GET /rest/v1/audit_events 200": 3,
+    "POST /rest/v1/rpc/admin_save_profile 403": 10,
+    "PUT /auth/v1/user 200": 1,
+    "PUT /auth/v1/user 403": 1,
+    "GET /rest/v1/profiles 200": 2,
+    "PATCH /rest/v1/profiles 403": 3,
+    "POST /rest/v1/contract_balances 403": 1,
+    "POST /rest/v1/rpc/admin_save_profile 204": 6,
+    "POST /rest/v1/rpc/admin_set_user_contract 204": 4,
+    "POST /rest/v1/rpc/admin_set_user_contract 403": 3,
+    "GET /rest/v1/products 401": 1,
+    "GET /rest/v1/suppliers 401": 1,
+    "GET /rest/v1/locations 401": 1,
+    "GET /rest/v1/contract_balances 401": 1,
+    "GET /rest/v1/balance_references 401": 1,
+    "GET /rest/v1/contract_balances_api 200": 8,
+    "GET /rest/v1/contract_balances_api 401": 1,
+    "GET /rest/v1/import_rows 200": 1,
+    "GET /rest/v1/system_settings 200": 1,
+    "GET /rest/v1/user_contracts 200": 1,
+    "POST /rest/v1/rpc/is_admin 404": 1,
+    "POST /rest/v1/rpc/can_read_contract 404": 1,
+    "POST /rest/v1/rpc/require_other_user_admin 404": 1,
+    "GET /rest/v1/administration_mutex 406": 1,
+    "GET /rest/v1/ 200": 1,
+    "POST /rest/v1/audit_events 403": 3,
+    "PATCH /rest/v1/audit_events 403": 3,
+    "DELETE /rest/v1/audit_events 403": 3,
+    "DELETE /rest/v1/import_rows 403": 3,
+    "POST /rest/v1/products 403": 5,
+    "POST /rest/v1/products 201": 2,
+    "PATCH /rest/v1/products 204": 2,
+    "DELETE /rest/v1/products 204": 2
+  },
+  "regressions": {
+    "automated": {
+      "passed": 80,
+      "files": 9
+    },
+    "nativePostgres": {
+      "version": "PostgreSQL 17.11 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+      "passed": 446,
+      "failed": 0
+    },
+    "chromium": {
+      "passed": 72,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "scope": "Local disposable integration only; frontend remains demo; no remote connection"
+}

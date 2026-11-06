@@ -177,6 +177,11 @@ describe("preflight local, não autenticação integrada", () => {
     expect(text).not.toContain("eyJexample");
     expect(text).not.toContain("u:example");
     expect(text).not.toContain("password=example");
+    expect(
+      redactDiagnostic(
+        '{"JWT_SECRET":"example-secret","refresh_token":"example-refresh"}',
+      ),
+    ).not.toContain("example-");
   });
   it("detecta alteração da configuração original sem sobrescrevê-la", async () => {
     const root = await fixture();
