@@ -8,7 +8,7 @@ export function createBackend(
 ) {
   if (configuration.mode !== "demo")
     throw new Error(
-      "Modo online desativado na v0.5. Nenhuma conexão foi iniciada.",
+      "Modo online desativado na v0.6. A validação integrada ainda está bloqueada; nenhuma conexão foi iniciada.",
     );
   return Object.freeze({
     mode: "demo" as const,

@@ -1,6 +1,6 @@
 {
   "name": "jp-estoque",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,13 +11,16 @@
     "typecheck": "tsc --noEmit",
     "test:browser": "npm run build && playwright test",
     "test:db": "node db-tests/run.mjs",
-    "test:all": "npm test && npm run typecheck && npm run test:db && npm run test:browser"
+    "test:all": "npm test && npm run typecheck && npm run test:db && npm run test:browser",
+    "test:integration": "node integration-tests/run.mjs",
+    "verify:v06": "npm run test:all && npm run test:integration"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
     "embedded-postgres": "17.11.0-beta.19",
     "jsdom": "^27.1.0",
     "pg": "8.23.1",
+    "supabase": "3.0.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.2",
     "vitest": "^4.0.8"

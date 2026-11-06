@@ -1,4 +1,4 @@
-# JP Estoque 0.5 — preparação para banco compartilhado
+# JP Estoque 0.6 — validação integrada bloqueada pelo ambiente
 
 Protótipo local com a identidade visual da JP, materiais e usuários fictícios. Não há autenticação ou banco compartilhado. A seleção de perfil **não é login**; botões e filtros de frontend não protegem dados reais.
 
@@ -65,3 +65,13 @@ Quatro migrações em `supabase/migrations/` preparam catálogo global, saldos/l
 - [Relatório de validação e pendências](docs/relatorio-v05.md)
 
 `npm run test:all` executa os testes existentes, TypeScript, PostgreSQL nativo e Playwright/build. Não cria projeto remoto, conta Auth real ou serviço pago. Não aplicar o antigo `docs/supabase-proposta.sql` junto às migrações v0.5. Não aplicar o stub `db-tests/support/auth.sql` a um projeto Supabase.
+
+## Estado da integração v0.6
+
+A CLI Supabase 3.0.0 está fixada como ferramenta de desenvolvimento. Este Windows não possui Docker/Podman ou WSL instalado; o runtime nativo completo Supabase não suporta Windows. Não foi possível iniciar GoTrue/PostgREST nem executar os cenários com JWTs reais. A aplicação permanece em demonstração; autenticação online **não está pronta**.
+
+`npm run test:integration` executa um preflight local não destrutivo, em cópia isolada da configuração/migrações, e gera `test-results/integration-results.json`. Os 18 cenários obrigatórios permanecem bloqueados, com zero testes Auth executados. O comando retorna código 2; presença da CLI ou do engine não é considerada aprovação da integração. A suíte HTTP real não foi implementada/executada neste ambiente indisponível.
+
+`npm run verify:v06` executa a regressão local e depois a etapa integrada: deve terminar bloqueado enquanto essa etapa estiver pendente. `test:all` continua sendo a suíte local/nativa; não é uma aprovação de Supabase Auth.
+
+Evidências, plano de retomada e diferenças entre testes executados e bloqueados: [relatório v0.6](docs/integracao-v06.md).

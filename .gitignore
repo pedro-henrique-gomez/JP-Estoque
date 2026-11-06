@@ -17,3 +17,4 @@ playwright-report/
 .local-db/
 supabase/.temp/
 supabase/.branches/
+.integration-local/
