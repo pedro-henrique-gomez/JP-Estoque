@@ -11,3 +11,6 @@ dist/
 *.[xX][lL][sS]
 *.[cC][sS][vV]
 imports/
+test-results/
+playwright-report/
+.diagnostics/

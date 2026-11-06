@@ -8,7 +8,12 @@ import {
   refreshDemoAccess,
 } from "../ts/demo-access.ts";
 import { demoStorage } from "../ts/demo-storage.ts";
-import { contracts } from "../ts/demo-data.ts";
+import {
+  contracts,
+  demoUserFixtures,
+  demoContractFixtures,
+} from "../ts/demo-data.ts";
+import { demoAdminStorage } from "../ts/demo-admin-storage.ts";
 import { DemoAdministration } from "../ts/demo-administration.ts";
 import { mountAdministration } from "../ts/admin-interface.ts";
 
@@ -140,6 +145,7 @@ const suppliers = [
   },
 ];
 const initial = demoStorage.load(seed);
+const demoSupplierFixtures = structuredClone(suppliers);
 const seedContractIds = new Map(
   contracts.map((contract) => [contract.name, contract.id]),
 );
@@ -155,6 +161,9 @@ const administration = new DemoAdministration(
   suppliers,
 );
 let renderAdministration = () => {};
+const storageBlocked = () =>
+  ["incompatible", "unavailable"].includes(demoStorage.load().state) ||
+  ["incompatible", "unavailable"].includes(demoAdminStorage.inspect().state);
 function save(action, before = null, after = null) {
   if (action) administration.record(action, "Materiais", before, after);
   updated = new Date().toLocaleString("pt-BR");
@@ -225,6 +234,31 @@ function render() {
     r.map((x) => x.contract),
   ).size;
   document.getElementById("statDate").textContent = updated;
+  const status = document.getElementById("dataStatus");
+  const user = currentDemoUser();
+  status.textContent = storageBlocked()
+    ? "Dados locais incompatíveis ou armazenamento indisponível. As chaves existentes foram preservadas; gravações bloqueadas. Não limpe o localStorage para resolver."
+    : !administration.users.length
+      ? "Nenhum usuário cadastrado. Os materiais existentes foram preservados; não há perfil selecionado para consulta."
+      : !contracts.length
+        ? "Nenhum contrato cadastrado. Dados preservados; cadastre contratos na área administrativa."
+        : !data.length
+          ? "Nenhum material cadastrado nesta base. O carregamento de dados fictícios exige uma escolha explícita; selecione Proprietário ou Administrador para habilitá-lo."
+          : !visibleData().length
+            ? `A base contém materiais, mas o perfil selecionado não possui acesso a eles${user?.status === "inativo" ? " porque está inativo" : ""}. Nenhum registro foi apagado.`
+            : !r.length
+              ? "Nenhum resultado para a pesquisa e os filtros atuais."
+              : "Base carregada. A consulta exibe somente os materiais autorizados para o perfil selecionado.";
+  const loadDemo = document.getElementById("loadDemo");
+  loadDemo.hidden = data.length > 0;
+  loadDemo.disabled =
+    storageBlocked() ||
+    (!canManage(user) &&
+      (administration.users.length > 0 || contracts.length > 0));
+  document.getElementById("add").disabled =
+    storageBlocked() || !canManage(user);
+  document.getElementById("reset").disabled =
+    storageBlocked() || !canManage(user);
   document.getElementById("rows").innerHTML = r.length
     ? r
         .map(
@@ -299,7 +333,7 @@ const fields = [
   ["nf", "NF"],
 ];
 window.edit = (id) => {
-  if (!canManage(currentDemoUser())) return;
+  if (storageBlocked() || !canManage(currentDemoUser())) return;
   const x = data.find((r) => r.id === id) || {
     id: 0,
     code: "",
@@ -330,7 +364,7 @@ window.edit = (id) => {
   contractInput.replaceWith(contractSelect);
   document.getElementById("editForm").onsubmit = (e) => {
     e.preventDefault();
-    if (!canManage(currentDemoUser())) return;
+    if (storageBlocked() || !canManage(currentDemoUser())) return;
     const fd = new FormData(e.target),
       v = Object.fromEntries(fd.entries());
     v.qty = Number(v.qty);
@@ -368,7 +402,8 @@ window.edit = (id) => {
   };
 };
 window.removeMaterial = (id) => {
-  if (!hasPermission(currentDemoUser(), "delete_materials")) return;
+  if (storageBlocked() || !hasPermission(currentDemoUser(), "delete_materials"))
+    return;
   const material = data.find((item) => item.id === id);
   if (!material || !confirm(`Excluir o material fictício ${material.code}?`))
     return;
@@ -409,7 +444,7 @@ document.getElementById("modal").onclick = (e) => {
 };
 document.getElementById("add").onclick = () => window.edit(0);
 document.getElementById("reset").onclick = () => {
-  if (!canManage(currentDemoUser())) return;
+  if (storageBlocked() || !canManage(currentDemoUser())) return;
   if (confirm("Restaurar todos os registros fictícios neste navegador?")) {
     const before = structuredClone(data);
     data = structuredClone(seed).flatMap((material) => {
@@ -492,6 +527,60 @@ document.getElementById("exportConsult").onclick = () => {
   a.download = "jp-estoque-consulta.csv";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+document.getElementById("loadDemo").onclick = () => {
+  if (data.length || storageBlocked()) return;
+  if (
+    !canManage(currentDemoUser()) &&
+    (administration.users.length || contracts.length)
+  )
+    return;
+  if (
+    !confirm(
+      "Carregar dados fictícios somente na base de materiais vazia? Cadastros existentes não serão substituídos.",
+    )
+  )
+    return;
+  const previous = {
+    users: structuredClone(administration.users),
+    contracts: structuredClone(contracts),
+    suppliers: structuredClone(suppliers),
+  };
+  const rollback = () => {
+    administration.users.splice(
+      0,
+      administration.users.length,
+      ...previous.users,
+    );
+    contracts.splice(0, contracts.length, ...previous.contracts);
+    suppliers.splice(0, suppliers.length, ...previous.suppliers);
+  };
+  if (!administration.users.length && !contracts.length)
+    administration.users.push(...structuredClone(demoUserFixtures));
+  if (!contracts.length)
+    contracts.push(...structuredClone(demoContractFixtures));
+  if (!suppliers.length)
+    suppliers.push(...structuredClone(demoSupplierFixtures));
+  const materials = structuredClone(seed).flatMap((material) => {
+    const contract = contracts.find(
+      (contract) => contract.id === seedContractIds.get(material.contract),
+    );
+    return contract ? [{ ...material, contract: contract.name }] : [];
+  });
+  const date = new Date().toLocaleString("pt-BR");
+  if (!materials.length || !demoStorage.save(materials, date, importReports)) {
+    rollback();
+    document.getElementById("dataStatus").textContent =
+      "Não foi possível carregar os dados fictícios: armazenamento indisponível ou contratos personalizados sem correspondência. Nada foi substituído.";
+    return;
+  }
+  data = materials;
+  updated = date;
+  if (!administration.persist())
+    alert(
+      "Materiais de teste salvos, mas não foi possível persistir os cadastros administrativos.",
+    );
+  refreshDemoAccess();
 };
 renderAdministration = mountAdministration(
   administration,

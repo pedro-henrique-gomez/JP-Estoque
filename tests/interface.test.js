@@ -19,6 +19,10 @@ beforeEach(async () => {
   );
   vi.stubGlobal("edit", (...args) => window.edit(...args));
   await import("../code/js/script.js");
+  changeUser("demo-7");
+  byId("loadDemo").click();
+  changeUser("demo-1");
+  confirm.mockClear();
 });
 afterEach(() => vi.unstubAllGlobals());
 

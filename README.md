@@ -40,3 +40,9 @@ O cadastro global de produto está separado dos saldos por contrato nos tipos e 
 SheetJS CE 0.20.3 está instalado pelo pacote oficial e sua licença Apache-2.0 é distribuída em `public/licenses/`. Os arquivos são lidos localmente; não há upload ou scripts de CDN em tempo de uso. Planilhas Excel/CSV são ignoradas pelo Git. Os testes usam apenas arquivos fictícios gerados em memória.
 
 Fluxo, regras, limites, licença e arquitetura estão em [docs/importacao-v03.md](docs/importacao-v03.md).
+
+## Correção da inicialização no navegador
+
+Bases válidas sem data e usuários com IDs personalizados agora são exibidos sem fallback destrutivo. JSON incompatível ou versões futuras são preservados e sinalizados; não limpe o localStorage. Quando a base de materiais está vazia, selecione Proprietário/Administrador e use **Carregar dados fictícios em base vazia**, com confirmação. A abertura da página não preenche ou grava materiais automaticamente.
+
+Para testes reais: `npx playwright install chromium` e `npm run test:browser`. A suíte executa Chromium contra o Vite e contra o build em perfis isolados. Resultados e evidências: [diagnóstico da inicialização](docs/correcao-inicializacao.md).

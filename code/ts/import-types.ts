@@ -98,7 +98,7 @@ export interface ImportContext {
   contracts: Contract[];
 }
 export interface ImportHost {
-  currentUser(): User;
+  currentUser(): User | null;
   getContext(): ImportContext;
   getReports(): ImportReport[];
   apply(materials: Material[], report: ImportReport): boolean;

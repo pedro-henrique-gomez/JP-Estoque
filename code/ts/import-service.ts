@@ -384,10 +384,10 @@ export function setImportPolicy(plan: ImportPlan, policy: ImportAction): void {
 export function applyImportPlan(
   plan: ImportPlan,
   context: ImportContext,
-  user: User,
+  user: User | null,
   confirmed: boolean,
 ): { materials: Material[]; report: ImportReport } {
-  if (!hasPermission(user, "import_spreadsheets"))
+  if (!user || !hasPermission(user, "import_spreadsheets"))
     throw new Error("Perfil sem permissão para importar.");
   if (!confirmed) throw new Error("Confirmação explícita obrigatória.");
   if (contextFingerprint(context) !== plan.fingerprint)

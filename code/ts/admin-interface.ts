@@ -12,7 +12,7 @@ const node = <K extends keyof HTMLElementTagNameMap>(
 };
 export function mountAdministration(
   store: DemoAdministration,
-  actor: () => User,
+  actor: () => User | null,
   onChange: () => void,
 ): () => void {
   const host = document.getElementById("adminFormHost")!;

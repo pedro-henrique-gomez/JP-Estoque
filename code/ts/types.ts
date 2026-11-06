@@ -82,4 +82,6 @@ export interface DemoSnapshot {
   materials: Material[];
   updated: string;
   importReports?: import("./import-types").ImportReport[];
+  state?: import("./local-state").LocalState;
+  source?: string;
 }

@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>JP Estoque | Terminal de Consulta</title>
     <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="icon" href="../../img/logo.png" />
   </head>
   <body>
+    <noscript
+      >O JavaScript está desativado. Ative-o para consultar os dados locais;
+      nenhum cadastro foi apagado.</noscript
+    >
     <div class="app">
       <aside class="side">
         <div class="brand">
@@ -25,6 +30,7 @@
         </div>
       </aside>
       <main class="main">
+        <div id="startupError" class="notice" role="alert" hidden></div>
         <header class="top">
           <div>
             <h1 id="heading">Terminal de consulta</h1>
@@ -70,6 +76,14 @@
           </details>
         </section>
         <section id="consulta">
+          <div class="panel">
+            <p id="dataStatus" role="status" aria-live="polite">
+              Inicializando dados locais…
+            </p>
+            <button id="loadDemo" class="btn alt" type="button" hidden>
+              Carregar dados fictícios em base vazia
+            </button>
+          </div>
           <div class="panel">
             <div class="filters">
               <div>
@@ -338,6 +352,6 @@
         <div id="modalBody"></div>
       </div>
     </div>
-    <script type="module" src="../js/script.js"></script>
+    <script type="module" src="../js/bootstrap.js"></script>
   </body>
 </html>

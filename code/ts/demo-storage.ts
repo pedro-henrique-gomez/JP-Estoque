@@ -2,6 +2,7 @@ import type { DemoSnapshot, Material } from "./types";
 import type { ImportReport } from "./import-types";
 import { toInventory } from "./inventory";
 import { contracts } from "./demo-data";
+import { readLocal } from "./local-state";
 
 const key = "jp_estoque_demo_v02";
 function isReport(value: unknown): value is ImportReport {
@@ -66,39 +67,58 @@ function isMaterial(value: unknown): value is Material {
 }
 /** Only a test adapter. Never store identities, sessions or production records here. */
 export const demoStorage = {
-  load(seed: Material[]): DemoSnapshot {
-    try {
-      const raw = localStorage.getItem(key);
-      const snapshot = raw
-        ? JSON.parse(raw)
-        : {
-            materials: JSON.parse(
-              localStorage.getItem("jp_estoque_demo_v01") || "null",
-            ),
-            updated:
-              localStorage.getItem("jp_estoque_updated_v01") ||
-              "Dados demonstrativos",
-          };
-      if (
-        Array.isArray(snapshot.materials) &&
-        snapshot.materials.every(isMaterial) &&
-        typeof snapshot.updated === "string"
-      ) {
-        const importReports = Array.isArray(snapshot.importReports)
-          ? snapshot.importReports.filter(isReport)
-          : [];
-        return {
-          materials: snapshot.materials,
-          updated: snapshot.updated,
-          importReports,
-        };
+  load(_seed: Material[] = []): DemoSnapshot {
+    let read = readLocal(key),
+      origin = key;
+    if (read.state === "missing") {
+      read = readLocal("jp_estoque_demo_v01");
+      origin = "jp_estoque_demo_v01";
+    }
+    const empty = {
+      materials: [],
+      updated: "Sem atualização registrada",
+      importReports: [],
+      state: read.state,
+      source: origin,
+    };
+    if (read.state !== "ready") return empty;
+    const snapshot =
+      origin.endsWith("v01") && Array.isArray(read.value)
+        ? { materials: read.value }
+        : read.value;
+    if (!snapshot || typeof snapshot !== "object")
+      return { ...empty, state: "incompatible" };
+    const value = snapshot as Record<string, unknown>;
+    if (
+      value.version !== undefined &&
+      ![2, 3].includes(value.version as number)
+    )
+      return { ...empty, state: "incompatible" };
+    if (!Array.isArray(value.materials) || !value.materials.every(isMaterial))
+      return { ...empty, state: "incompatible" };
+    if (
+      value.importReports !== undefined &&
+      (!Array.isArray(value.importReports) ||
+        !value.importReports.every(isReport))
+    )
+      return { ...empty, state: "incompatible" };
+    let legacyDate: string | null = null;
+    if (origin.endsWith("v01")) {
+      try {
+        legacyDate = localStorage.getItem("jp_estoque_updated_v01");
+      } catch {
+        /* Keep the material records readable. */
       }
-    } catch {
-      /* Invalid or unavailable test storage: use isolated fixtures. */
     }
     return {
-      materials: structuredClone(seed),
-      updated: "Dados demonstrativos",
+      materials: value.materials,
+      updated:
+        typeof value.updated === "string" && value.updated.trim()
+          ? value.updated
+          : legacyDate || "Data não informada na base salva",
+      importReports: (value.importReports as ImportReport[]) || [],
+      state: value.materials.length ? "ready" : "empty",
+      source: origin,
     };
   },
   save(
@@ -107,10 +127,16 @@ export const demoStorage = {
     importReports: ImportReport[] = [],
   ): boolean {
     try {
+      const state = this.load().state;
+      if (state === "incompatible" || state === "unavailable") return false;
+      const read = readLocal(key);
+      const previous =
+        read.value && typeof read.value === "object" ? read.value : {};
       const inventory = toInventory(materials, contracts);
       localStorage.setItem(
         key,
         JSON.stringify({
+          ...previous,
           version: 3,
           ...inventory,
           materials,

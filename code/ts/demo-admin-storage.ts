@@ -6,6 +6,7 @@ import {
   type GeneralSettings,
   type AuditEntry,
 } from "./types";
+import { readLocal, type LocalState } from "./local-state";
 
 export interface DemoAdministrationSnapshot {
   users: User[];
@@ -23,6 +24,8 @@ const uniqueIds = (values: { id: string }[]) =>
   new Set(values.map((value) => value.id)).size === values.length;
 function valid(value: unknown): value is DemoAdministrationSnapshot {
   if (!record(value)) return false;
+  if (value.version !== undefined && ![2, 3].includes(value.version as number))
+    return false;
   if (
     !Array.isArray(value.contracts) ||
     !value.contracts.every(
@@ -42,7 +45,6 @@ function valid(value: unknown): value is DemoAdministrationSnapshot {
   const ids = new Set(value.contracts.map((contract) => contract.id));
   if (
     !Array.isArray(value.users) ||
-    !value.users.length ||
     !value.users.every(
       (user) =>
         record(user) &&
@@ -85,17 +87,32 @@ function valid(value: unknown): value is DemoAdministrationSnapshot {
 }
 /** Fictitious records only. Not an auth/session store and not secure auditing. */
 export const demoAdminStorage = {
+  inspect(): {
+    state: LocalState;
+    snapshot: DemoAdministrationSnapshot | null;
+  } {
+    const read = readLocal(key);
+    if (read.state !== "ready") return { state: read.state, snapshot: null };
+    if (!valid(read.value)) return { state: "incompatible", snapshot: null };
+    return {
+      state:
+        read.value.users.length || read.value.contracts.length
+          ? "ready"
+          : "empty",
+      snapshot: read.value,
+    };
+  },
   load(): DemoAdministrationSnapshot | null {
-    try {
-      const value: unknown = JSON.parse(localStorage.getItem(key) || "null");
-      return valid(value) ? value : null;
-    } catch {
-      return null;
-    }
+    return this.inspect().snapshot;
   },
   save(snapshot: DemoAdministrationSnapshot): boolean {
     try {
-      localStorage.setItem(key, JSON.stringify(snapshot));
+      const state = this.inspect().state;
+      if (state === "incompatible" || state === "unavailable") return false;
+      const read = readLocal(key);
+      const previous =
+        read.value && typeof read.value === "object" ? read.value : {};
+      localStorage.setItem(key, JSON.stringify({ ...previous, ...snapshot }));
       return true;
     } catch {
       return false;

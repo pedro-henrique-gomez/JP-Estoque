@@ -43,3 +43,6 @@ demoUsers.push(
     authorizedContractIds: [],
   },
 );
+// Immutable copies for the explicit empty-base demonstration loader only.
+export const demoUserFixtures = structuredClone(demoUsers);
+export const demoContractFixtures = structuredClone(contracts);

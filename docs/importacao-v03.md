@@ -1,5 +1,7 @@
 # Importação local de planilhas — JP Estoque v0.3
 
+Correção posterior: a inicialização preserva snapshots sem data, sinaliza incompatibilidades sem sobrescrever chaves e exige carga explícita de materiais fictícios em base vazia. Veja [diagnóstico e validação no Chromium](correcao-inicializacao.md). O fluxo de importação abaixo permanece disponível.
+
 ## Uso
 
 1. Execute `npm ci` e `npm run dev`. Abra `/code/html/index.html` no servidor exibido.

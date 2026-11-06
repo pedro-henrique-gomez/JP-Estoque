@@ -21,7 +21,7 @@ export class DemoAdministration {
     supportEmail: "suporte@example.invalid",
   };
   constructor(
-    private readonly actor: () => User,
+    private readonly actor: () => User | null,
     private readonly materials: () => Material[],
     readonly suppliers: Supplier[],
   ) {
@@ -32,6 +32,12 @@ export class DemoAdministration {
       this.suppliers.splice(0, this.suppliers.length, ...saved.suppliers);
       Object.assign(this.settings, saved.settings);
       this.history.push(...saved.history);
+    } else if (
+      ["incompatible", "unavailable"].includes(demoAdminStorage.inspect().state)
+    ) {
+      this.users.splice(0);
+      this.contracts.splice(0);
+      this.suppliers.splice(0);
     }
   }
   persist(): boolean {
@@ -44,6 +50,12 @@ export class DemoAdministration {
     });
   }
   private require(permission: Permission): void {
+    if (
+      ["incompatible", "unavailable"].includes(demoAdminStorage.inspect().state)
+    )
+      throw new Error(
+        "Base administrativa incompatível ou indisponível. Os dados salvos foram preservados.",
+      );
     if (!hasPermission(this.actor(), permission))
       throw new Error("Ação indisponível para o perfil demonstrativo atual.");
   }
@@ -54,6 +66,7 @@ export class DemoAdministration {
     after: unknown = null,
   ): void {
     const actor = this.actor();
+    if (!actor) throw new Error("Nenhum usuário demonstrativo selecionado.");
     this.history.unshift({
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
