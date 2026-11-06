@@ -1,3 +1,5 @@
+-- HISTORICAL v0.2 PROPOSAL: do not apply alongside v0.5 migrations.
+-- Authoritative schema: supabase/migrations/*.sql. See docs/arquitetura-v05.md.
 -- Proposta para revisão futura. Não executada pela aplicação nem por npm build.
 create schema if not exists private;
 revoke all on schema private from public;

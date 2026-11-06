@@ -1,5 +1,7 @@
 # Arquitetura de acesso — v0.2 consolidada
 
+Documento histórico. Para a preparação atual de banco, usar [arquitetura v0.5](arquitetura-v05.md) e `supabase/migrations/`. A proposta SQL v0.2 abaixo não é a migração atual. A aplicação permanece local; a validação nativa de SQL/RLS e as pendências Auth/API constam no relatório v0.5.
+
 Correção de inicialização: estados vazios e incompatíveis não recebem mais materiais fictícios automaticamente. A carga é explícita, e o usuário selecionado pode ser nulo sem conceder permissões. Veja [diagnóstico e testes reais](correcao-inicializacao.md).
 
 Atualização v0.3: as permissões permanecem e a capacidade `import_spreadsheets` é exclusiva dos mesmos dois perfis administrativos ativos. O modelo de importação agora separa catálogo global de saldos por contrato; veja [importacao-v03.md](importacao-v03.md). A proposta SQL abaixo referida é da v0.2, não aplicada, e ainda precisará de migração para esse modelo antes de integrar o banco real.

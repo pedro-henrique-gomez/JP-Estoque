@@ -7,16 +7,17 @@ import {
   mountDemoAccess,
   refreshDemoAccess,
 } from "../ts/demo-access.ts";
-import { demoStorage } from "../ts/demo-storage.ts";
+import { createBackend } from "../ts/data/backend.ts";
 import {
   contracts,
   demoUserFixtures,
   demoContractFixtures,
 } from "../ts/demo-data.ts";
-import { demoAdminStorage } from "../ts/demo-admin-storage.ts";
 import { DemoAdministration } from "../ts/demo-administration.ts";
 import { mountAdministration } from "../ts/admin-interface.ts";
 import { mountInterface } from "../ts/interface.ts";
+const { materials: demoStorage, administration: demoAdminStorage } =
+  createBackend();
 
 const ui = mountInterface(() => {
   document.getElementById("search").value = "";

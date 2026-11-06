@@ -1,4 +1,4 @@
-# JP Estoque 0.4 — terminal de consulta
+# JP Estoque 0.5 — preparação para banco compartilhado
 
 Protótipo local com a identidade visual da JP, materiais e usuários fictícios. Não há autenticação ou banco compartilhado. A seleção de perfil **não é login**; botões e filtros de frontend não protegem dados reais.
 
@@ -52,3 +52,16 @@ Para testes reais: `npx playwright install chromium` e `npm run test:browser`. A
 Pesquisa em destaque, simulador recolhível com perfil visível no resumo, filtros com limpeza rápida, resultados adaptados a cartões no celular e detalhes com saldos por contrato autorizado. O atalho `/` foca a pesquisa. Diálogos mantêm o foco, fecham com Escape e retornam ao controle anterior. As abas administrativas têm navegação por setas, Home e End.
 
 Dados, chaves e esquema do localStorage não mudaram nesta versão. As permissões aprovadas permanecem; a seleção de perfil continua sendo demonstração, não login. Detalhes, validação e limitações: [interface v0.4](docs/interface-v04.md).
+
+## Infraestrutura v0.5 — online desativado
+
+O terminal continua local. A fábrica em `code/ts/data/backend.ts` retorna os adaptadores anteriores sem I/O; `online` é rejeitado nesta versão. Não há SDK/conexão Supabase ou migração do localStorage. A importação Excel e as permissões locais não foram modificadas.
+
+Quatro migrações em `supabase/migrations/` preparam catálogo global, saldos/localizações por contrato, usuários/vínculos, fornecedores, referências OC/NF e histórico. As regras RLS são testadas em PostgreSQL 17.11 nativo por `npm run test:db`, com fixtures Auth exclusivamente locais e sem Docker. Isso valida SQL/RLS de verdade, mas não valida JWT, GoTrue ou PostgREST.
+
+- [Arquitetura e modelo v0.5](docs/arquitetura-v05.md)
+- [Permissões RLS e matriz de segurança](docs/permissoes-rls.md)
+- [Configuração futura do Supabase](docs/configuracao-supabase.md)
+- [Relatório de validação e pendências](docs/relatorio-v05.md)
+
+`npm run test:all` executa os testes existentes, TypeScript, PostgreSQL nativo e Playwright/build. Não cria projeto remoto, conta Auth real ou serviço pago. Não aplicar o antigo `docs/supabase-proposta.sql` junto às migrações v0.5. Não aplicar o stub `db-tests/support/auth.sql` a um projeto Supabase.

@@ -14,3 +14,6 @@ imports/
 test-results/
 playwright-report/
 .diagnostics/
+.local-db/
+supabase/.temp/
+supabase/.branches/
