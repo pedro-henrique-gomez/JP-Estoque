@@ -1,3 +1,5 @@
+import { mountImport } from "../ts/import-interface.ts";
+import { codeKey, globalFields } from "../ts/inventory.ts";
 import { canManage, hasPermission } from "../ts/access.ts";
 import {
   currentDemoUser,
@@ -145,10 +147,8 @@ const seedSupplierIds = new Map(
   suppliers.map((supplier) => [supplier.name, supplier.id]),
 );
 let data = initial.materials,
-  updated = initial.updated,
-  sourceRows = [],
-  sourceHeaders = [],
-  staged = [];
+  updated = initial.updated;
+let importReports = initial.importReports || [];
 const administration = new DemoAdministration(
   currentDemoUser,
   () => data,
@@ -158,7 +158,7 @@ let renderAdministration = () => {};
 function save(action, before = null, after = null) {
   if (action) administration.record(action, "Materiais", before, after);
   updated = new Date().toLocaleString("pt-BR");
-  if (!demoStorage.save(data, updated))
+  if (!demoStorage.save(data, updated, importReports))
     alert(
       "Armazenamento local indisponível. Alterações mantidas apenas nesta sessão de teste.",
     );
@@ -356,6 +356,11 @@ window.edit = (id) => {
       return;
     }
     const before = x.id ? structuredClone(x) : null;
+    data
+      .filter((item) => codeKey(item.code) === codeKey(v.code))
+      .forEach((item) =>
+        globalFields.forEach((field) => (item[field] = v[field])),
+      );
     if (x.id) data = data.map((z) => (z.id === x.id ? v : z));
     else data.push(v);
     save(x.id ? "Material editado" : "Material cadastrado", before, v);
@@ -442,247 +447,6 @@ document.querySelectorAll("[data-tab]").forEach(
         );
     }),
 );
-function csvRows(text) {
-  const out = [];
-  let row = [],
-    cur = "",
-    quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === '"') {
-      if (quoted && text[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else quoted = !quoted;
-    } else if (!quoted && (ch === "," || ch === ";" || ch === "\t")) {
-      row.push(cur);
-      cur = "";
-    } else if (!quoted && (ch === "\n" || ch === "\r")) {
-      if (ch === "\r" && text[i + 1] === "\n") i++;
-      row.push(cur);
-      if (row.some((x) => x.trim())) out.push(row);
-      row = [];
-      cur = "";
-    } else cur += ch;
-  }
-  row.push(cur);
-  if (row.some((x) => x.trim())) out.push(row);
-  return out;
-}
-function detectDelimiter(text) {
-  const l = text.split(/\r?\n/)[0] || "";
-  return [";", ",", "\t"].sort(
-    (a, b) => l.split(b).length - l.split(a).length,
-  )[0];
-}
-function parseCsv(text) {
-  const d = detectDelimiter(text);
-  const rows = csvRows(text);
-  if (d !== ",")
-    return rows.map((r) => {
-      if (r.length === 1) {
-        return csvRows(r[0].replaceAll(d, ","))[0];
-      }
-      return r;
-    });
-  return rows;
-}
-function parseCSVStrict(text) {
-  const delim = detectDelimiter(text),
-    out = [];
-  let row = [],
-    cur = "",
-    quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === '"') {
-      if (quoted && text[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else quoted = !quoted;
-    } else if (!quoted && ch === delim) {
-      row.push(cur);
-      cur = "";
-    } else if (!quoted && (ch === "\n" || ch === "\r")) {
-      if (ch === "\r" && text[i + 1] === "\n") i++;
-      row.push(cur);
-      if (row.some((v) => v.trim())) out.push(row);
-      row = [];
-      cur = "";
-    } else cur += ch;
-  }
-  row.push(cur);
-  if (row.some((v) => v.trim())) out.push(row);
-  return out;
-}
-const aliases = {
-  code: ["codigo", "código", "cod", "sku"],
-  name: ["material", "produto", "descrição", "descricao", "nome"],
-  category: ["categoria", "grupo"],
-  contract: ["contrato", "obra", "centro de custo"],
-  qty: ["quantidade", "qtd", "saldo", "estoque"],
-  unit: ["unidade", "und", "un"],
-  location: ["localização", "localizacao", "posição", "posicao", "endereco"],
-  brand: ["marca", "fabricante"],
-  model: ["modelo", "referencia", "referência"],
-  supplier: ["fornecedor", "distribuidor"],
-  oc: ["oc", "ordem de compra"],
-  nf: ["nf", "nota fiscal"],
-};
-document.getElementById("file").onchange = async (e) => {
-  if (!canManage(currentDemoUser())) return;
-  const importingUser = currentDemoUser();
-  const f = e.target.files[0];
-  if (!f) return;
-  document.getElementById("previewArea").classList.add("hidden");
-  document.getElementById("importMessage").textContent = "";
-  try {
-    let matrix;
-    if (/\.csv$/i.test(f.name)) matrix = parseCSVStrict(await f.text());
-    else {
-      if (!window.XLSX) await loadSheetJS();
-      const workbook = XLSX.read(await f.arrayBuffer(), {
-        type: "array",
-      });
-      matrix = XLSX.utils.sheet_to_json(
-        workbook.Sheets[workbook.SheetNames[0]],
-        { header: 1, defval: "" },
-      );
-    }
-    if (currentDemoUser() !== importingUser || !canManage(currentDemoUser()))
-      return;
-    if (matrix.length < 2) throw Error("Arquivo sem registros suficientes");
-    sourceHeaders = matrix[0].map((x) => String(x).trim());
-    sourceRows = matrix.slice(1).filter((r) => r.some((v) => String(v).trim()));
-    document.getElementById("mapFields").innerHTML = fields
-      .map(([k, label]) => {
-        const match = sourceHeaders.findIndex((h) =>
-          (aliases[k] || []).some((a) =>
-            h
-              .toLowerCase()
-              .normalize("NFD")
-              .replace(/[\u0300-\u036f]/g, "")
-              .includes(a.normalize("NFD").replace(/[\u0300-\u036f]/g, "")),
-          ),
-        );
-        return `<div><label class="label">${label}</label><select data-map="${k}"><option value="">Não importar</option>${sourceHeaders.map((h, i) => `<option value="${i}" ${i === match ? "selected" : ""}>${esc(h)}</option>`).join("")}</select></div>`;
-      })
-      .join("");
-    document.getElementById("mapping").classList.remove("hidden");
-  } catch (err) {
-    document.getElementById("importMessage").textContent =
-      "Erro: " + err.message;
-  }
-};
-function loadSheetJS() {
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
-    s.onload = resolve;
-    s.onerror = () =>
-      reject(
-        Error(
-          "Não foi possível carregar o leitor Excel. Conecte-se à internet ou exporte como CSV.",
-        ),
-      );
-    document.head.appendChild(s);
-  });
-}
-document.getElementById("preview").onclick = () => {
-  if (!canManage(currentDemoUser())) return;
-  const m = {};
-  document.querySelectorAll("[data-map]").forEach((s) => {
-    if (s.value !== "") m[s.dataset.map] = Number(s.value);
-  });
-  if (
-    m.code === undefined ||
-    m.name === undefined ||
-    m.contract === undefined ||
-    m.qty === undefined
-  ) {
-    alert("Associe Código, Material, Contrato e Quantidade.");
-    return;
-  }
-  staged = sourceRows.map((r, i) => {
-    const x = {};
-    fields.forEach(
-      ([k]) => (x[k] = m[k] === undefined ? "" : String(r[m[k]] ?? "").trim()),
-    );
-    x.qty = Number(String(x.qty).replace(",", "."));
-    x.id = 0;
-    x._line = i + 2;
-    x._error =
-      !x.code ||
-      !x.name ||
-      !contracts.some((contract) => contract.name === x.contract) ||
-      !Number.isFinite(x.qty) ||
-      x.qty < 0;
-    x._existing = data.find(
-      (y) =>
-        y.code.toLowerCase() === x.code.toLowerCase() &&
-        y.contract.toLowerCase() === x.contract.toLowerCase(),
-    );
-    return x;
-  });
-  const invalid = staged.filter((x) => x._error).length,
-    dups = staged.filter((x) => x._existing).length;
-  document.getElementById("previewInfo").textContent =
-    `${staged.length} linhas analisadas · ${invalid} inválidas · ${dups} registros já existentes (serão atualizados) · ${staged.length - invalid - dups} possíveis novos registros. Revise antes de confirmar.`;
-  document.getElementById("previewRows").innerHTML = staged
-    .slice(0, 100)
-    .map(
-      (x) =>
-        `<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.contract)}</td><td>${esc(x.qty)}</td><td>${x._error ? "Inválido" : x._existing ? "Atualizar" : "Novo"}</td></tr>`,
-    )
-    .join("");
-  document.getElementById("previewArea").classList.remove("hidden");
-  document.getElementById("commit").disabled = !!invalid;
-};
-document.getElementById("commit").onclick = () => {
-  if (!canManage(currentDemoUser())) return;
-  if (staged.some((x) => x._error)) {
-    alert("Corrija as linhas inválidas antes de importar.");
-    return;
-  }
-  const keys = new Set();
-  if (
-    staged.some((x) => {
-      const k = x.code.toLowerCase() + "|" + x.contract.toLowerCase();
-      if (keys.has(k)) return true;
-      keys.add(k);
-      return false;
-    })
-  ) {
-    alert(
-      "Há códigos duplicados para o mesmo contrato no arquivo. Corrija antes de importar.",
-    );
-    return;
-  }
-  if (
-    !confirm(
-      `Confirmar importação de ${staged.length} registros? Saldos existentes poderão ser substituídos.`,
-    )
-  )
-    return;
-  const before = structuredClone(data);
-  staged.forEach((x) => {
-    const { id, _line, _error, _existing, ...v } = x;
-    if (_existing) {
-      Object.assign(
-        _existing,
-        Object.fromEntries(
-          Object.entries(v).filter(([k, val]) => val !== "" || k === "qty"),
-        ),
-      );
-    } else data.push({ ...v, id: Math.max(0, ...data.map((z) => z.id)) + 1 });
-  });
-  save("Importação de materiais", before, data);
-  document.getElementById("previewArea").classList.add("hidden");
-  document.getElementById("mapping").classList.add("hidden");
-  document.getElementById("file").value = "";
-  document.getElementById("importMessage").innerHTML =
-    '<div class="success">Importação concluída neste navegador. Consulte os registros no terminal.</div>';
-};
 function csvEscape(v) {
   const s = String(v ?? "");
   return '"' + s.replaceAll('"', '""') + '"';
@@ -737,11 +501,36 @@ renderAdministration = mountAdministration(
     refreshDemoAccess();
   },
 );
+const importer = mountImport({
+  currentUser: currentDemoUser,
+  getContext: () => ({ materials: data, contracts }),
+  getReports: () => importReports,
+  apply: (materials, report) => {
+    const nextReports = [...importReports, report];
+    const timestamp = new Date().toLocaleString("pt-BR");
+    if (!demoStorage.save(materials, timestamp, nextReports)) return false;
+    const before = data;
+    data = materials;
+    updated = timestamp;
+    importReports = nextReports;
+    administration.record(
+      "Importacao de planilha",
+      report.fileName,
+      { materials: before },
+      { report, materials },
+    );
+    if (!administration.persist())
+      alert(
+        "Falha ao salvar o historico administrativo. O relatorio da importacao foi preservado.",
+      );
+    render();
+    renderAdministration();
+    return true;
+  },
+});
 mountDemoAccess(() => {
   hideModal();
-  staged = [];
-  sourceRows = [];
-  sourceHeaders = [];
+  importer.reset();
   document.getElementById("file").value = "";
   document.getElementById("mapping").classList.add("hidden");
   document.getElementById("previewArea").classList.add("hidden");

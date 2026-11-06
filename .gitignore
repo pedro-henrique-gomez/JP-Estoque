@@ -3,3 +3,11 @@ dist/
 .env
 .env.*
 !.env.example
+# Never commit imported company workbooks or local import/export files.
+*.xlsx
+*.xls
+*.csv
+*.[xX][lL][sS][xX]
+*.[xX][lL][sS]
+*.[cC][sS][vV]
+imports/

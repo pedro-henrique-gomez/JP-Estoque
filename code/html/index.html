@@ -20,7 +20,7 @@
           ><button data-page="admin">⚙ &nbsp; Administração</button>
         </nav>
         <div class="sidefoot">
-          Protótipo v0.2 · Dados locais e fictícios<br />Não substitui o
+          Protótipo v0.3 · Dados locais e fictícios<br />Não substitui o
           processo atual da JP.
         </div>
       </aside>
@@ -35,7 +35,7 @@
           <span class="pill">● Demonstração local</span>
         </header>
         <section class="panel demo-access" aria-labelledby="demoTitle">
-          <h2 id="demoTitle">Simulador de permissões · v0.2</h2>
+          <h2 id="demoTitle">Simulador de permissões · v0.3</h2>
           <p class="notice">
             Demonstração com usuários fictícios. A seleção de perfis não é
             login. Os filtros apenas simulam permissões; não protegem dados.
@@ -196,18 +196,42 @@
             </div>
             <div id="import" class="hidden" data-admin-panel>
               <div class="panel">
-                <h3>Importação com conferência prévia</h3>
+                <h3>Importação com conferência prévia · v0.3</h3>
                 <p class="muted">
-                  Aceita arquivos .xlsx, .xls e .csv. Para Excel, a leitura
-                  utiliza uma biblioteca externa carregada pela internet; CSV
-                  funciona offline. O importador permite mapear as colunas.
+                  Aceita .xlsx, .xls e .csv, lidos localmente com SheetJS
+                  Community Edition (Apache-2.0), sem envio do arquivo. Somente
+                  Proprietário e Administrador ativos podem importar nesta
+                  demonstração. Filtros de frontend não são segurança real.
                 </p>
+                <div class="notice">
+                  Cadastro global: código, descrição, unidade, categoria,
+                  fabricante e modelo. Saldos por contrato: quantidade,
+                  localização e referências. Atualizar um produto global afeta
+                  sua descrição nos outros contratos, sem alterar os saldos
+                  desses contratos. Nada é somado, movimentado ou substituído
+                  automaticamente. Use apenas dados fictícios. Limites: 10 MB,
+                  10.000 registros e 200 colunas.
+                </div>
+                <label for="file" class="label">Arquivo local de teste</label>
                 <input
                   type="file"
                   id="file"
                   accept=".csv,.xlsx,.xls"
                   class="fileinput"
                 />
+                <div id="workbookControls" class="filters hidden">
+                  <label class="label" for="sheetSelect"
+                    >Aba da planilha<select id="sheetSelect"></select
+                  ></label>
+                  <label class="label" for="headerRow"
+                    >Linha de cabeçalho<input
+                      id="headerRow"
+                      type="number"
+                      min="1"
+                      step="1"
+                      value="1"
+                  /></label>
+                </div>
                 <div id="mapping" class="hidden">
                   <h4>Relacionar colunas da planilha</h4>
                   <div id="mapFields" class="formgrid"></div>
@@ -219,27 +243,69 @@
                 </div>
                 <div id="previewArea" class="hidden">
                   <div id="previewInfo" class="notice"></div>
+                  <label for="importPolicy" class="label"
+                    >Aplicar escolha às linhas válidas</label
+                  >
+                  <select id="importPolicy">
+                    <option value="ignore">
+                      Ignorar todas (padrão seguro)
+                    </option>
+                    <option value="add">
+                      Adicionar somente novos saldos; ignorar existentes
+                    </option>
+                    <option value="update">
+                      Atualizar somente existentes; ignorar novos
+                    </option>
+                  </select>
+                  <p class="subtle">
+                    Você também pode escolher a ação por linha. Erros precisam
+                    ser corrigidos no arquivo ou ignorados. Unidades são
+                    obrigatórias; fórmulas devem ser convertidas em valores.
+                    Campos opcionais em branco preservam o valor existente.
+                  </p>
                   <div class="tablewrap">
                     <table>
                       <thead>
                         <tr>
+                          <th>Linha</th>
                           <th>Código</th>
                           <th>Material</th>
+                          <th>Unidade</th>
                           <th>Contrato</th>
-                          <th>Quantidade</th>
+                          <th>Saldo atual</th>
+                          <th>Saldo proposto</th>
                           <th>Situação</th>
+                          <th>Ação escolhida</th>
                         </tr>
                       </thead>
                       <tbody id="previewRows"></tbody>
                     </table>
                   </div>
+                  <div class="toolbar">
+                    <button
+                      class="btn alt smallbtn"
+                      id="previousPreview"
+                      type="button"
+                    >
+                      Anterior
+                    </button>
+                    <span id="previewPage" class="subtle"></span>
+                    <button
+                      class="btn alt smallbtn"
+                      id="nextPreview"
+                      type="button"
+                    >
+                      Próxima
+                    </button>
+                  </div>
                   <p>
-                    <button class="btn" id="commit">
+                    <button class="btn" id="commit" disabled>
                       Confirmar importação
                     </button>
                   </p>
                 </div>
-                <div id="importMessage"></div>
+                <div id="importMessage" role="status" aria-live="polite"></div>
+                <div id="importReports"></div>
               </div>
             </div>
             <div id="users" class="panel hidden" data-admin-panel></div>

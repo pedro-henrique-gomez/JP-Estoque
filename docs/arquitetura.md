@@ -1,5 +1,7 @@
 # Arquitetura de acesso — v0.2 consolidada
 
+Atualização v0.3: as permissões permanecem e a capacidade `import_spreadsheets` é exclusiva dos mesmos dois perfis administrativos ativos. O modelo de importação agora separa catálogo global de saldos por contrato; veja [importacao-v03.md](importacao-v03.md). A proposta SQL abaixo referida é da v0.2, não aplicada, e ainda precisará de migração para esse modelo antes de integrar o banco real.
+
 O sistema continua sendo um protótipo local com dados fictícios. Não há autenticação, banco compartilhado ou proteção de dados reais. A seleção de usuário demonstra cenários e não cria sessão autenticada.
 
 ## Permissões centralizadas

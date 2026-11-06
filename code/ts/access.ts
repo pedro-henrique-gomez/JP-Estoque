@@ -23,6 +23,7 @@ export const permissions = [
   "change_user_status",
   "view_history",
   "manage_settings",
+  "import_spreadsheets",
 ] as const;
 export type Permission = (typeof permissions)[number];
 

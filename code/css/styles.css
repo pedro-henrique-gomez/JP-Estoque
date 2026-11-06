@@ -444,3 +444,34 @@ tr:last-child td {
   max-height: 260px;
   overflow: auto;
 }
+#previewRows pre {
+  white-space: pre-wrap;
+  max-width: 480px;
+  max-height: 220px;
+  overflow: auto;
+}
+#previewRows td {
+  vertical-align: top;
+  min-width: 100px;
+}
+#previewRows td:nth-last-child(2) {
+  min-width: 250px;
+}
+#previewRows select {
+  min-width: 180px;
+}
+#workbookControls {
+  margin: 16px 0;
+}
+#importReports details {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+#importReports summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+#importMessage {
+  padding: 12px 0;
+  font-size: 13px;
+}

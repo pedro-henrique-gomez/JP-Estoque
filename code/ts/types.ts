@@ -81,4 +81,5 @@ export interface AdministrationRepository {
 export interface DemoSnapshot {
   materials: Material[];
   updated: string;
+  importReports?: import("./import-types").ImportReport[];
 }

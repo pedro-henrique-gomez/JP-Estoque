@@ -1,4 +1,4 @@
-# JP Estoque 0.2 — permissões consolidadas
+# JP Estoque 0.3 — importação de planilhas
 
 Protótipo local com a identidade visual da JP, materiais e usuários fictícios. Não há autenticação ou banco compartilhado. A seleção de perfil **não é login**; botões e filtros de frontend não protegem dados reais.
 
@@ -30,3 +30,13 @@ Consulta, busca, filtros, detalhes, fornecedores, exportação CSV, restauraçã
 Materiais fictícios ficam em `jp_estoque_demo_v02`, com recuperação de dados válidos da v0.1. Usuários, vínculos, fornecedores, contratos, histórico e configurações de teste ficam em `jp_estoque_admin_demo_v02`. Esses dados não são seguros ou compartilhados. O histórico é demonstrativo e adulterável. A escolha do seletor não é persistida; nenhum token/sessão é criado. Não inserir dados reais. Para retornar às fixtures iniciais, remova ambas as chaves de teste e recarregue (remova também as chaves v0.1 se não quiser a recuperação antiga).
 
 A [arquitetura futura](docs/arquitetura.md) define adaptadores para Supabase Auth e autorização real com RLS. O SQL é uma proposta não aplicada; a integração e a validação do banco ficam para a próxima etapa.
+
+## Importação v0.3
+
+Excel/CSV agora oferece seleção de aba e linha de cabeçalho, mapeamento de colunas, validação de códigos/descrições/unidades/quantidades/contratos, duplicidades, prévia paginada, ações por linha e relatório persistido com data e arquivo de origem. Todas as linhas começam ignoradas; adicionar ou atualizar exige escolha e confirmação. Proprietário e Administrador ativos possuem a capacidade central `import_spreadsheets`.
+
+O cadastro global de produto está separado dos saldos por contrato nos tipos e no snapshot local, com uma projeção de compatibilidade para as telas antigas. Atualizar o produto afeta seus dados globais, mas só o saldo do contrato escolhido é substituído; quantidades não são somadas. Não há movimentações de estoque.
+
+SheetJS CE 0.20.3 está instalado pelo pacote oficial e sua licença Apache-2.0 é distribuída em `public/licenses/`. Os arquivos são lidos localmente; não há upload ou scripts de CDN em tempo de uso. Planilhas Excel/CSV são ignoradas pelo Git. Os testes usam apenas arquivos fictícios gerados em memória.
+
+Fluxo, regras, limites, licença e arquitetura estão em [docs/importacao-v03.md](docs/importacao-v03.md).

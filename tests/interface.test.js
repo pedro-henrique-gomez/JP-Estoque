@@ -174,10 +174,13 @@ describe("interface e funcionalidades preservadas", () => {
     const file = {
       name: "teste.csv",
       text: async () =>
-        "codigo;material;contrato;quantidade\nTEST-1;Material importado;Contrato A;5",
+        "codigo;material;unidade;contrato;quantidade\nTEST-1;Material importado;un;Contrato A;5",
     };
     await byId("file").onchange({ target: { files: [file] } });
     byId("preview").click();
+    expect(byId("commit").disabled).toBe(true);
+    byId("importPolicy").value = "add";
+    byId("importPolicy").dispatchEvent(new Event("change"));
     expect(byId("commit").disabled).toBe(false);
     byId("commit").click();
     expect(byId("rows").textContent).toContain("Material importado");
@@ -187,7 +190,7 @@ describe("interface e funcionalidades preservadas", () => {
           {
             ...file,
             text: async () =>
-              "codigo;material;contrato;quantidade\nTEST-2;Inválido;Contrato X;2",
+              "codigo;material;unidade;contrato;quantidade\nTEST-2;Inválido;un;Contrato X;2",
           },
         ],
       },
@@ -200,36 +203,127 @@ describe("interface e funcionalidades preservadas", () => {
   });
   it("mantém leitura Excel, atualização existente e bloqueio de duplicados", async () => {
     changeUser("demo-7");
-    vi.stubGlobal("XLSX", {
-      read: vi.fn(() => ({
-        SheetNames: ["Planilha"],
-        Sheets: { Planilha: {} },
-      })),
-      utils: {
-        sheet_to_json: vi.fn(() => [
-          ["codigo", "material", "contrato", "quantidade"],
-          ["ELE-001", "Disjuntor atualizado", "Contrato A", 99],
-        ]),
-      },
-    });
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.aoa_to_sheet([
+        ["codigo", "material", "unidade", "contrato", "quantidade"],
+        ["ELE-001", "Disjuntor atualizado", "un", "Contrato A", 99],
+      ]),
+      "Planilha",
+    );
+    const bytes = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
     const file = {
       name: "teste.xlsx",
-      arrayBuffer: async () => new ArrayBuffer(0),
+      arrayBuffer: async () => bytes,
     };
     await byId("file").onchange({ target: { files: [file] } });
     byId("preview").click();
     expect(byId("previewRows").textContent).toContain("Atualizar");
+    byId("importPolicy").value = "update";
+    byId("importPolicy").dispatchEvent(new Event("change"));
     byId("commit").click();
     expect(byId("rows").textContent).toContain("Disjuntor atualizado");
     const csv = {
       name: "duplicados.csv",
       text: async () =>
-        "codigo;material;contrato;quantidade\nDUP;Teste;Contrato A;1\nDUP;Teste;Contrato A;2",
+        "codigo;material;unidade;contrato;quantidade\nDUP;Teste;un;Contrato A;1\nDUP;Teste;un;Contrato A;2",
     };
     await byId("file").onchange({ target: { files: [csv] } });
     byId("preview").click();
     byId("commit").click();
-    expect(alert).toHaveBeenCalledWith(expect.stringContaining("duplicados"));
+    expect(byId("previewRows").textContent).toContain("duplicados");
+    expect(byId("commit").disabled).toBe(true);
     expect(byId("rows").textContent).not.toContain("DUP");
+  });
+  it("seleciona aba, detecta cabeçalho após título e invalida prévia ao remapear", async () => {
+    changeUser("demo-6");
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.aoa_to_sheet([["Orientações"], ["Só testes"]]),
+      "Leia primeiro",
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.aoa_to_sheet([
+        ["Materiais fictícios"],
+        ["codigo", "material", "unidade", "contrato", "quantidade"],
+        ["ABA-2", "Produto da segunda aba", "un", "Contrato B", 3],
+      ]),
+      "Materiais",
+    );
+    const bytes = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
+    await byId("file").onchange({
+      target: {
+        files: [{ name: "varias-abas.xlsx", arrayBuffer: async () => bytes }],
+      },
+    });
+    byId("sheetSelect").value = "Materiais";
+    byId("sheetSelect").dispatchEvent(new Event("change"));
+    expect(byId("headerRow").value).toBe("2");
+    byId("preview").click();
+    expect(byId("previewRows").textContent).toContain("Produto da segunda aba");
+    const column = document.querySelector('[data-map="name"]');
+    column.dispatchEvent(new Event("change"));
+    expect(byId("previewArea").classList.contains("hidden")).toBe(true);
+    expect(byId("commit").disabled).toBe(true);
+  });
+  it("cancelar confirmação ou falha de armazenamento não aplica importação; relatório persiste ao concluir", async () => {
+    changeUser("demo-7");
+    const file = {
+      name: "local.csv",
+      text: async () =>
+        "codigo;material;unidade;contrato;quantidade\nATOM;Produto atomicidade;un;Contrato A;8",
+    };
+    await byId("file").onchange({ target: { files: [file] } });
+    byId("preview").click();
+    byId("importPolicy").value = "add";
+    byId("importPolicy").dispatchEvent(new Event("change"));
+    confirm.mockReturnValueOnce(false);
+    byId("commit").click();
+    expect(byId("rows").textContent).not.toContain("Produto atomicidade");
+    const spy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementationOnce(() => {
+        throw new Error("Quota");
+      });
+    byId("commit").click();
+    expect(byId("rows").textContent).not.toContain("Produto atomicidade");
+    expect(byId("importMessage").textContent).toContain("Nada foi aplicado");
+    spy.mockRestore();
+    byId("commit").click();
+    expect(byId("rows").textContent).toContain("Produto atomicidade");
+    expect(byId("importReports").textContent).toContain("local.csv");
+    const saved = JSON.parse(localStorage.getItem("jp_estoque_demo_v02"));
+    expect(
+      saved.products.find((product) => product.code === "ATOM"),
+    ).toBeTruthy();
+    expect(saved.importReports[0].fileName).toBe("local.csv");
+    expect(saved.importReports[0].added).toBe(1);
+    expect(byId("history").textContent).toContain("local.csv");
+  });
+  it("descarta leitura pendente ao mudar de perfil e nega importação a Diretor", async () => {
+    changeUser("demo-7");
+    let resolve;
+    const promise = new Promise((done) => (resolve = done));
+    const loading = byId("file").onchange({
+      target: { files: [{ name: "pendente.csv", text: () => promise }] },
+    });
+    changeUser("demo-5");
+    resolve(
+      "codigo;material;unidade;contrato;quantidade\nRACE;Não importar;un;Contrato A;1",
+    );
+    await loading;
+    expect(byId("mapping").classList.contains("hidden")).toBe(true);
+    expect(byId("commit").disabled).toBe(true);
+    await byId("file").onchange({
+      target: { files: [{ name: "negado.csv", text: async () => "" }] },
+    });
+    expect(byId("importMessage").textContent).toContain(
+      "Somente Proprietário e Administrador",
+    );
   });
 });
