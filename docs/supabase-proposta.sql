@@ -32,7 +32,7 @@ create table public.materials (
 );
 create function private.is_admin() returns boolean
 language sql stable security definer set search_path = '' as $$
-  select exists(select 1 from public.profiles p where p.id = (select auth.uid()) and p.active and p.role = 'administrador');
+  select exists(select 1 from public.profiles p where p.id = (select auth.uid()) and p.active and p.role in ('proprietario', 'administrador'));
 $$;
 create function private.can_read_contract(target uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
@@ -74,3 +74,67 @@ create policy material_update on public.materials for update to authenticated
 create policy material_delete on public.materials for delete to authenticated
   using (private.is_admin());
 -- No browser write grants/policies for profiles or memberships: prevents escalation.
+-- User administration requires a verified, audited server endpoint that allows
+-- BOTH active proprietario and administrador. Never trust a client role.
+
+create table public.suppliers (
+  id uuid primary key default gen_random_uuid(), name text not null unique,
+  areas text not null default '', contact text not null default ''
+);
+create table public.general_settings (
+  id boolean primary key default true check (id),
+  system_name text not null, support_email text not null
+);
+create table public.audit_history (
+  id bigint generated always as identity primary key,
+  occurred_at timestamptz not null default now(),
+  actor_id uuid, entity text not null, operation text not null,
+  before_data jsonb, after_data jsonb
+);
+alter table public.suppliers enable row level security;
+alter table public.general_settings enable row level security;
+alter table public.audit_history enable row level security;
+revoke all on public.suppliers, public.general_settings, public.audit_history from anon, authenticated;
+grant select, insert, update, delete on public.suppliers, public.general_settings to authenticated;
+grant insert, update, delete on public.contracts to authenticated;
+grant select on public.audit_history to authenticated;
+
+create policy contract_admin on public.contracts for all to authenticated
+  using (private.is_admin()) with check (private.is_admin());
+create policy supplier_read on public.suppliers for select to authenticated
+  using (private.is_admin() or exists (
+    select 1 from public.materials m where m.supplier = suppliers.name
+      and private.can_read_contract(m.contract_id)
+  ));
+create policy supplier_admin on public.suppliers for all to authenticated
+  using (private.is_admin()) with check (private.is_admin());
+create policy settings_admin on public.general_settings for all to authenticated
+  using (private.is_admin()) with check (private.is_admin());
+create policy history_admin on public.audit_history for select to authenticated
+  using (private.is_admin());
+
+-- Database-generated history, without browser insert/update/delete privileges.
+-- Server-only provisioning must also record the verified actor transactionally.
+create function private.record_change() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  insert into public.audit_history (actor_id, entity, operation, before_data, after_data)
+  values (auth.uid(), tg_table_name, tg_op,
+    case when tg_op = 'INSERT' then null else to_jsonb(old) end,
+    case when tg_op = 'DELETE' then null else to_jsonb(new) end);
+  return null;
+end;
+$$;
+revoke all on function private.record_change() from public;
+create trigger material_history after insert or update or delete on public.materials
+  for each row execute function private.record_change();
+create trigger supplier_history after insert or update or delete on public.suppliers
+  for each row execute function private.record_change();
+create trigger contract_history after insert or update or delete on public.contracts
+  for each row execute function private.record_change();
+create trigger profile_history after insert or update or delete on public.profiles
+  for each row execute function private.record_change();
+create trigger membership_history after insert or update or delete on public.user_contracts
+  for each row execute function private.record_change();
+create trigger settings_history after insert or update or delete on public.general_settings
+  for each row execute function private.record_change();

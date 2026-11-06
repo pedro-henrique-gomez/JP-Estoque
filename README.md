@@ -1,34 +1,32 @@
-# JP Estoque 0.2
+# JP Estoque 0.2 — permissões consolidadas
 
-Protótipo de consulta de estoque, com a identidade visual da JP e arquivos separados por linguagem.
+Protótipo local com a identidade visual da JP, materiais e usuários fictícios. Não há autenticação ou banco compartilhado. A seleção de perfil **não é login**; botões e filtros de frontend não protegem dados reais.
 
 ```text
 code/html/       Página
 code/css/        Estilos
-code/js/         Interações e funcionalidades existentes
-code/ts/         Tipos, regras de apresentação, usuários fictícios e armazenamento de teste
+code/js/         Consulta, cadastro e importação existentes
+code/ts/         Tipos, permissões centrais e administração demonstrativa
 img/             Logo
-tests/           Testes de regras e integração da interface
-docs/            Arquitetura e proposta SQL para a futura integração
+tests/           Regras e integração da interface
+docs/            Arquitetura e proposta SQL para futura integração
 ```
 
-Requer Node.js 22.12+ (ou 20.19+). Execute `npm ci`, `npm run dev` e abra a URL exibida no terminal. O uso de módulos TypeScript requer o servidor de desenvolvimento; abrir o HTML diretamente com `file://` não é mais suportado. Validação: `npm test` e `npm run build`. Para conferir o resultado compilado: `npm run preview`, em `/code/html/index.html`.
+Requer Node.js 22.12+. Execute `npm ci` e `npm run dev`. Abra `/code/html/index.html` na URL exibida. O HTML precisa do servidor para carregar módulos; `file://` não é suportado. Validação: `npm test` e `npm run build`. Para conferir a compilação: `npm run preview`.
 
-## Demonstração de perfis
+| Perfil ativo                                                  | Consulta              | Administração |
+| ------------------------------------------------------------- | --------------------- | ------------- |
+| Funcionário autorizado, almoxarife, coordenador, planejamento | Contratos autorizados | Não           |
+| Diretor                                                       | Todos os contratos    | Não           |
+| Proprietário e Administrador                                  | Todos os contratos    | Completa      |
+| Qualquer perfil inativo                                       | Nenhum contrato       | Não           |
 
-A seleção de usuários fictícios **não é login** e não autentica ninguém. Todos os dados de demonstração são enviados ao navegador; filtros, botões e verificações JavaScript não são uma barreira de segurança.
+Selecione Felipe (Proprietário) ou Gabriela (Administrador) no simulador e abra Administração. Ambos podem cadastrar, editar e excluir materiais, gerenciar fornecedores/contratos, cadastrar/editar usuários e seus perfis/vínculos, ativar/desativar usuários, visualizar histórico e editar configurações gerais. A matriz de acesso mostra as mesmas capacidades para os dois perfis.
 
-| Perfil ativo                                                  | Consulta                       | Cadastros/importação |
-| ------------------------------------------------------------- | ------------------------------ | -------------------- |
-| Funcionário autorizado, almoxarife, coordenador, planejamento | Somente contratos vinculados   | Não                  |
-| Diretor, proprietário                                         | Todos os contratos cadastrados | Não                  |
-| Administrador                                                 | Todos os contratos cadastrados | Sim                  |
-| Qualquer perfil inativo                                       | Nenhum contrato                | Não                  |
+As abas administrativas usam as permissões centralizadas em `code/ts/access.ts`. Usuários têm ID, nome, email fictício, perfil, status e lista de contratos autorizados. Não é permitido desativar/rebaixar o último Proprietário ou Administrador ativo. Contratos e fornecedores vinculados não podem ser excluídos sem remover os vínculos.
 
-Cada usuário possui ID, nome, email fictício, perfil, status e IDs dos contratos autorizados. A matriz mostra cada perfil usando o status e os vínculos do usuário selecionado; o perfil atual aparece em destaque. Há exemplos inativos e sem vínculos.
+Consulta, busca, filtros, detalhes, fornecedores, exportação CSV, restauração e importação Excel/CSV com mapeamento/prévia foram preservados. Importações aceitam somente contratos cadastrados. Renomeações de fornecedores/contratos atualizam os materiais associados; restauração utiliza os contratos ainda existentes e os nomes atuais. OC/NF continuam apenas como referências; nenhum processo de RM, OC, compras ou recebimento foi modificado.
 
-Consulta, busca, detalhes, filtros, fornecedores, exportação CSV, cadastro/edição, restauração e importação com prévia foram preservados. A senha fixa antiga foi removida. O usuário inicial é um funcionário autorizado ao Contrato A. A administração demonstrativa é acessível selecionando Gabriela (Administrador). Somente A, B, C e D são contratos válidos nesta demonstração; importações com contratos desconhecidos são rejeitadas. OC/NF continuam sendo apenas referências textuais existentes. Não existem compras, RM, criação de OC ou movimentações.
+Materiais fictícios ficam em `jp_estoque_demo_v02`, com recuperação de dados válidos da v0.1. Usuários, vínculos, fornecedores, contratos, histórico e configurações de teste ficam em `jp_estoque_admin_demo_v02`. Esses dados não são seguros ou compartilhados. O histórico é demonstrativo e adulterável. A escolha do seletor não é persistida; nenhum token/sessão é criado. Não inserir dados reais. Para retornar às fixtures iniciais, remova ambas as chaves de teste e recarregue (remova também as chaves v0.1 se não quiser a recuperação antiga).
 
-O adaptador `demo-storage.ts` guarda somente materiais fictícios em `jp_estoque_demo_v02`, recuperando registros válidos da v0.1 quando presentes, sem apagar a versão anterior. Nunca armazena sessão ou escolha de perfil. Quando o armazenamento falha, usa memória durante a sessão. Não inserir dados reais.
-
-A arquitetura futura está descrita em [docs/arquitetura.md](docs/arquitetura.md). Não há Supabase conectado ou autenticação implementada nesta versão.
+A [arquitetura futura](docs/arquitetura.md) define adaptadores para Supabase Auth e autorização real com RLS. O SQL é uma proposta não aplicada; a integração e a validação do banco ficam para a próxima etapa.

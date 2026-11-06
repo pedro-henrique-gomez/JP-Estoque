@@ -1,15 +1,29 @@
-# Autenticação e autorização futuras
+# Arquitetura de acesso — v0.2 consolidada
 
-`types.ts` define User, Role, Contract, Material, IdentityProvider e MaterialRepository. `access.ts` contém regras puras para a apresentação. `demo-access.ts` é exclusivamente um simulador; `demo-storage.ts` é um adaptador de teste. Não converter o seletor de demonstração em provedor de identidade.
+O sistema continua sendo um protótipo local com dados fictícios. Não há autenticação, banco compartilhado ou proteção de dados reais. A seleção de usuário demonstra cenários e não cria sessão autenticada.
 
-Na futura integração, implementar IdentityProvider com Supabase Auth e buscar o perfil usando o ID autenticado. O ID do usuário deve corresponder a `auth.users.id`. Resolver vínculos a partir de `user_contracts`, nunca de localStorage, parâmetros enviados pelo cliente ou metadata editável pelo usuário. Não confiar em emails como identificador de autorização.
+## Permissões centralizadas
 
-Implementar MaterialRepository com consultas remotas; a API deve delegar ao Postgres as políticas de autorização. Substituir carregamento e gravação da coleção local por list/upsert remotos (sem gravar uma cópia completa). A interface pode esconder ações para orientar o usuário, mas o servidor deve negar operações independentemente dessa interface. Usuários inativos perdem leitura e escrita mesmo com sessão válida.
+`code/ts/access.ts` é a única associação de perfis a capacidades no cliente. `rolePermissions` dá a Proprietário e Administrador as mesmas permissões: consulta global, gerenciamento/exclusão de materiais, fornecedores, contratos, usuários, permissões, status, histórico e configurações. Diretor possui somente consulta global; os outros quatro perfis consultam contratos vinculados. Inativos não possuem capacidades, independentemente do perfil.
 
-`supabase-proposta.sql` é um esboço revisável, **não uma migração aplicada**. Normaliza contratos, perfis e vínculos. RLS usa `auth.uid()` e uma função de escopo no banco, com `search_path` explícito, para evitar consultas recursivas às políticas de perfis. O administrador consulta todos para gerenciar materiais. Apenas administradores ativos escrevem materiais; diretores/proprietários não escrevem. Não há política anônima.
+Componentes usam `hasPermission`, `canManage` e `canReadContract`, sem comparações locais de nomes de perfis. Os nomes internos TypeScript usam minúsculas (`proprietario`, `administrador`, etc.). O cadastro de vínculos continua explícito para todos; os dois perfis administrativos e o Diretor têm consulta global por capacidade, independentemente da lista.
 
-Perfis/status/vínculos devem ser provisionados por uma operação administrativa confiável no servidor, com verificação de administrador ativo, validação, auditoria e proteção do último administrador. O cliente não tem permissão de escrita nessas tabelas e não pode se promover ou reativar. A chave de serviço nunca pode entrar no bundle do frontend. A criação inicial do administrador deve acontecer por processo confiável fora do cliente.
+`DemoAdministration` valida alterações fictícias e mantém vínculos consistentes ao renomear contratos e fornecedores. Bloqueia emails/nome de contrato/nome de fornecedor duplicados, contratos inexistentes em usuários, exclusão de registros vinculados e perda do último Proprietário ou Administrador ativo. Essas validações orientam o protótipo e não impedem adulteração pelo navegador.
 
-Antes da implantação: criar o projeto Supabase e migrações versionadas, rever grants, validar RLS com pgTAP/`supabase test db`, integrar Auth real e o adaptador remoto, remover o simulador e o armazenamento local do produto de produção. Cobrir SELECT/INSERT/UPDATE/DELETE para usuário não autenticado, quatro perfis restritos com e sem vínculo, diretor, proprietário, administrador e todos os perfis inativos; incluir adulteração do contrato, mudança de perfil/status/vínculos e revogação com sessão aberta. Verificar referências OC/NF somente como campos informativos. Os testes locais desta versão não comprovam segurança de banco: o SQL ainda não foi executado.
+O histórico inclui autor fictício, horário, ação e valores antes/depois. É armazenado localmente junto aos cadastros de teste, pode ser adulterado e não representa auditoria confiável. Não armazena identidade autenticada, tokens ou escolha do seletor. Dados administrativos locais ficam em `jp_estoque_admin_demo_v02` e materiais em `jp_estoque_demo_v02`; não há transação compartilhada ou sincronização. Se o armazenamento falhar, alterações ficam em memória.
 
-Referência oficial consultada: https://supabase.com/docs/guides/database/postgres/row-level-security
+## Integração futura
+
+`types.ts` define os contratos de IdentityProvider, MaterialRepository e AdministrationRepository. Implementar IdentityProvider com Supabase Auth e buscar perfil pelo ID autenticado igual a `auth.users.id`. Resolver status, perfil e vínculos no banco; nunca aceitar essas informações do seletor, localStorage ou metadata editável pelo usuário.
+
+Substituir adaptadores de teste por operações remotas individuais. Não enviar a coleção completa de materiais/usuários para filtrar no navegador. Usar `contract_id` com chave estrangeira nos materiais e na tabela `user_contracts`; mapear o nome do contrato apenas na apresentação. Normalizar também o fornecedor com ID na implementação definitiva.
+
+`supabase-proposta.sql` é uma proposta para revisão, não uma migração aplicada. `private.is_admin()` aceita Proprietário e Administrador ativos, mantendo paridade nas operações administrativas. Políticas de consulta validam escopo e status no banco. RLS e grants restringem leitura/escrita de materiais, fornecedores, contratos, configurações e histórico. Triggers geram histórico no banco; o cliente não pode gravar, editar ou apagar essa trilha.
+
+Gerenciamento de usuários e permissões requer endpoint confiável no servidor: validar a sessão real e a capacidade administrativa atual, permitir Proprietário e Administrador ativos, validar vínculos/status/perfil e proteger o último gestor ativo dentro de uma transação com bloqueio contra concorrência. Perfis e vínculos não têm escrita direta pelo navegador, para impedir autopromoção e reativação sem autorização. Provisionar contas com Auth Admin somente no servidor; nunca embutir chave de serviço no frontend. Registrar o ator autenticado nessa operação, inclusive quando a conexão de serviço não carrega `auth.uid()`.
+
+Antes de produção: remover o simulador e adaptadores locais; criar migrações versionadas e testes de banco com pgTAP/`supabase test db`; validar operações por perfil e contrato, incluindo inativos, sessões antigas, não autenticados, alteração de perfil/status/vínculos, último gestor, autopromoção e escrita indevida de histórico. Os testes locais verificam regras e interface, mas não comprovam RLS: a proposta SQL não foi executada.
+
+RM, OC, compras e recebimento da JP permanecem fora do escopo; OC/NF continuam apenas como referências textuais da consulta existente.
+
+Referência oficial: [Supabase — Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security).

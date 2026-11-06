@@ -1,10 +1,14 @@
-import { canManage } from "../ts/access.ts";
+import { canManage, hasPermission } from "../ts/access.ts";
 import {
   currentDemoUser,
   canReadMaterial,
   mountDemoAccess,
+  refreshDemoAccess,
 } from "../ts/demo-access.ts";
 import { demoStorage } from "../ts/demo-storage.ts";
+import { contracts } from "../ts/demo-data.ts";
+import { DemoAdministration } from "../ts/demo-administration.ts";
+import { mountAdministration } from "../ts/admin-interface.ts";
 
 const seed = [
   {
@@ -115,34 +119,55 @@ const seed = [
 ];
 const suppliers = [
   {
+    id: "fornecedor-1",
     name: "Obramax",
     areas: "Civil, elétrica e hidráulica",
     contact: "Contato não informado",
   },
   {
     name: "Distribuidor técnico",
+    id: "fornecedor-2",
     areas: "Automação e elétrica",
     contact: "Contato não informado",
   },
   {
     name: "Fornecedor civil",
+    id: "fornecedor-3",
     areas: "Construção civil",
     contact: "Contato não informado",
   },
 ];
 const initial = demoStorage.load(seed);
+const seedContractIds = new Map(
+  contracts.map((contract) => [contract.name, contract.id]),
+);
+const seedSupplierIds = new Map(
+  suppliers.map((supplier) => [supplier.name, supplier.id]),
+);
 let data = initial.materials,
   updated = initial.updated,
   sourceRows = [],
   sourceHeaders = [],
   staged = [];
-function save() {
+const administration = new DemoAdministration(
+  currentDemoUser,
+  () => data,
+  suppliers,
+);
+let renderAdministration = () => {};
+function save(action, before = null, after = null) {
+  if (action) administration.record(action, "Materiais", before, after);
   updated = new Date().toLocaleString("pt-BR");
   if (!demoStorage.save(data, updated))
     alert(
-      "Armazenamento local indispon?vel. Altera??es mantidas apenas nesta sess?o de teste.",
+      "Armazenamento local indisponível. Alterações mantidas apenas nesta sessão de teste.",
+    );
+  if (!administration.persist())
+    alert(
+      "Não foi possível salvar os cadastros administrativos de teste neste navegador.",
     );
   render();
+  renderAdministration();
 }
 function visibleData() {
   return data.filter((row) => canReadMaterial(row.contract));
@@ -213,7 +238,7 @@ function render() {
   )
     .map(
       (x) =>
-        `<tr><td class="code">${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.contract)}</td><td>${esc(x.qty)} ${esc(x.unit)}</td><td><button class="btn alt smallbtn" onclick="edit(${x.id})">Editar</button></td></tr>`,
+        `<tr><td class="code">${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.contract)}</td><td>${esc(x.qty)} ${esc(x.unit)}</td><td><button class="btn alt smallbtn" onclick="edit(${x.id})">Editar</button> <button class="btn danger smallbtn" onclick="removeMaterial(${x.id})">Excluir</button></td></tr>`,
     )
     .join("");
   document.getElementById("supplierCards").innerHTML = suppliers
@@ -280,7 +305,7 @@ window.edit = (id) => {
     code: "",
     name: "",
     category: "",
-    contract: "Contrato A",
+    contract: contracts[0]?.name ?? "",
     qty: 0,
     unit: "un",
     location: "",
@@ -294,18 +319,23 @@ window.edit = (id) => {
     x.id ? "Editar material" : "Cadastrar material",
     `<form id="editForm"><div class="formgrid">${fields.map(([key, label]) => `<div class="${key === "name" ? "wide" : ""}"><label class="label">${label}</label><input name="${key}" ${["code", "name", "contract", "qty"].includes(key) ? "required" : ""} ${key === "qty" ? 'type="number" min="0" step="any"' : ""} value="${esc(x[key])}"></div>`).join("")}</div><p><button class="btn" type="submit">Salvar cadastro</button></p></form>`,
   );
+  const contractInput = document.querySelector('#editForm [name="contract"]');
+  const contractSelect = document.createElement("select");
+  contractSelect.name = "contract";
+  contractSelect.required = true;
+  contracts.forEach((contract) =>
+    contractSelect.add(new Option(contract.name, contract.name)),
+  );
+  contractSelect.value = x.contract;
+  contractInput.replaceWith(contractSelect);
   document.getElementById("editForm").onsubmit = (e) => {
     e.preventDefault();
     if (!canManage(currentDemoUser())) return;
     const fd = new FormData(e.target),
       v = Object.fromEntries(fd.entries());
     v.qty = Number(v.qty);
-    if (
-      !["Contrato A", "Contrato B", "Contrato C", "Contrato D"].includes(
-        v.contract,
-      )
-    ) {
-      alert("Selecione um contrato cadastrado: Contrato A, B, C ou D.");
+    if (!contracts.some((contract) => contract.name === v.contract)) {
+      alert("Informe um contrato cadastrado.");
       return;
     }
     if (!Number.isFinite(v.qty) || v.qty < 0) {
@@ -325,11 +355,20 @@ window.edit = (id) => {
       );
       return;
     }
+    const before = x.id ? structuredClone(x) : null;
     if (x.id) data = data.map((z) => (z.id === x.id ? v : z));
     else data.push(v);
-    save();
+    save(x.id ? "Material editado" : "Material cadastrado", before, v);
     hideModal();
   };
+};
+window.removeMaterial = (id) => {
+  if (!hasPermission(currentDemoUser(), "delete_materials")) return;
+  const material = data.find((item) => item.id === id);
+  if (!material || !confirm(`Excluir o material fictício ${material.code}?`))
+    return;
+  data = data.filter((item) => item.id !== id);
+  save("Material excluído", material);
 };
 document.querySelectorAll("[data-page]").forEach(
   (b) =>
@@ -367,8 +406,25 @@ document.getElementById("add").onclick = () => window.edit(0);
 document.getElementById("reset").onclick = () => {
   if (!canManage(currentDemoUser())) return;
   if (confirm("Restaurar todos os registros fictícios neste navegador?")) {
-    data = structuredClone(seed);
-    save();
+    const before = structuredClone(data);
+    data = structuredClone(seed).flatMap((material) => {
+      const contract = contracts.find(
+        (contract) => contract.id === seedContractIds.get(material.contract),
+      );
+      if (!contract) return [];
+      return [
+        {
+          ...material,
+          contract: contract.name,
+          supplier:
+            suppliers.find(
+              (supplier) =>
+                supplier.id === seedSupplierIds.get(material.supplier),
+            )?.name ?? "",
+        },
+      ];
+    });
+    save("Materiais restaurados", before, data);
   }
 };
 document.querySelectorAll("[data-tab]").forEach(
@@ -378,11 +434,12 @@ document.querySelectorAll("[data-tab]").forEach(
         .querySelectorAll("[data-tab]")
         .forEach((x) => x.classList.remove("active"));
       b.classList.add("active");
-      ["records", "import"].forEach((x) =>
-        document
-          .getElementById(x)
-          .classList.toggle("hidden", x !== b.dataset.tab),
-      );
+      document.getElementById("adminFormHost").replaceChildren();
+      document
+        .querySelectorAll("[data-admin-panel]")
+        .forEach((panel) =>
+          panel.classList.toggle("hidden", panel.id !== b.dataset.tab),
+        );
     }),
 );
 function csvRows(text) {
@@ -557,9 +614,7 @@ document.getElementById("preview").onclick = () => {
     x._error =
       !x.code ||
       !x.name ||
-      !["Contrato A", "Contrato B", "Contrato C", "Contrato D"].includes(
-        x.contract,
-      ) ||
+      !contracts.some((contract) => contract.name === x.contract) ||
       !Number.isFinite(x.qty) ||
       x.qty < 0;
     x._existing = data.find(
@@ -609,6 +664,7 @@ document.getElementById("commit").onclick = () => {
     )
   )
     return;
+  const before = structuredClone(data);
   staged.forEach((x) => {
     const { id, _line, _error, _existing, ...v } = x;
     if (_existing) {
@@ -620,7 +676,7 @@ document.getElementById("commit").onclick = () => {
       );
     } else data.push({ ...v, id: Math.max(0, ...data.map((z) => z.id)) + 1 });
   });
-  save();
+  save("Importação de materiais", before, data);
   document.getElementById("previewArea").classList.add("hidden");
   document.getElementById("mapping").classList.add("hidden");
   document.getElementById("file").value = "";
@@ -673,6 +729,14 @@ document.getElementById("exportConsult").onclick = () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
+renderAdministration = mountAdministration(
+  administration,
+  currentDemoUser,
+  () => {
+    save();
+    refreshDemoAccess();
+  },
+);
 mountDemoAccess(() => {
   hideModal();
   staged = [];
@@ -682,4 +746,7 @@ mountDemoAccess(() => {
   document.getElementById("mapping").classList.add("hidden");
   document.getElementById("previewArea").classList.add("hidden");
   render();
+  renderAdministration();
+  document.querySelector(".brand b").textContent =
+    administration.settings.systemName;
 });

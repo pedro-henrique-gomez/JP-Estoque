@@ -35,19 +35,19 @@
           <span class="pill">● Demonstração local</span>
         </header>
         <section class="panel demo-access" aria-labelledby="demoTitle">
-          <h2 id="demoTitle">Simulador de permiss?es ? v0.2</h2>
+          <h2 id="demoTitle">Simulador de permissões · v0.2</h2>
           <p class="notice">
-            Demonstra??o com usu?rios fict?cios. A sele??o de perfis n?o ?
-            login. Os filtros apenas simulam permiss?es; n?o protegem dados.
+            Demonstração com usuários fictícios. A seleção de perfis não é
+            login. Os filtros apenas simulam permissões; não protegem dados.
             Armazenamento local exclusivo para testes.
           </p>
           <label class="label" for="demoUser"
-            >Selecionar usu?rio fict?cio e perfil (demonstra??o)</label
+            >Selecionar usuário fictício e perfil (demonstração)</label
           >
           <select id="demoUser"></select>
           <p id="demoSummary" class="subtle" aria-live="polite"></p>
           <details>
-            <summary>Visualizar permiss?es por perfil e contrato</summary>
+            <summary>Visualizar permissões por perfil e contrato</summary>
             <p id="permissionContext" class="subtle"></p>
             <div class="tablewrap">
               <table>
@@ -55,7 +55,7 @@
                   Matriz demonstrativa de acesso
                 </caption>
                 <thead>
-                  <tr>
+                  <tr id="permissionHead">
                     <th>Perfil</th>
                     <th>Contrato A</th>
                     <th>Contrato B</th>
@@ -141,24 +141,31 @@
         </section>
         <section id="admin" class="hidden">
           <div id="adminLock" class="panel">
-            <h3>Administra??o demonstrativa</h3>
+            <h3>Administração demonstrativa</h3>
             <p class="muted">
-              Somente o perfil Administrador ativo gerencia cadastros nesta
-              demonstra??o. Selecione o usu?rio fict?cio correspondente no
-              simulador acima. N?o h? login nesta vers?o.
+              Proprietário e Administrador ativos possuem administração completa
+              nesta demonstração. Selecione um usuário fictício no simulador
+              acima. Não há login nesta versão.
             </p>
           </div>
           <div id="adminArea" class="hidden">
             <div class="notice">
-              Área administrativa de demonstração: os dados são armazenados
-              apenas neste navegador. Não há sincronização com outros
-              computadores.
+              Protótipo local com dados fictícios. A seleção de perfil não é
+              login e não protege dados. Cadastros, histórico e configurações
+              fictícios ficam apenas neste navegador, para testes. Não há banco
+              compartilhado ou autenticação real. Não insira dados reais.
             </div>
+            <div id="adminFormHost"></div>
             <div class="tabs">
               <button class="active" data-tab="records">Cadastros</button
               ><button data-tab="import">Importar Excel/CSV</button>
+              <button data-tab="users">Usuários e permissões</button>
+              <button data-tab="suppliersAdmin">Fornecedores</button>
+              <button data-tab="contractsAdmin">Contratos</button>
+              <button data-tab="history">Histórico</button>
+              <button data-tab="settings">Configurações</button>
             </div>
-            <div id="records">
+            <div id="records" data-admin-panel>
               <div class="panel">
                 <div class="toolbar">
                   <h3>Gerenciar materiais</h3>
@@ -187,7 +194,7 @@
                 </div>
               </div>
             </div>
-            <div id="import" class="hidden">
+            <div id="import" class="hidden" data-admin-panel>
               <div class="panel">
                 <h3>Importação com conferência prévia</h3>
                 <p class="muted">
@@ -235,6 +242,19 @@
                 <div id="importMessage"></div>
               </div>
             </div>
+            <div id="users" class="panel hidden" data-admin-panel></div>
+            <div
+              id="suppliersAdmin"
+              class="panel hidden"
+              data-admin-panel
+            ></div>
+            <div
+              id="contractsAdmin"
+              class="panel hidden"
+              data-admin-panel
+            ></div>
+            <div id="history" class="panel hidden" data-admin-panel></div>
+            <div id="settings" class="panel hidden" data-admin-panel></div>
           </div>
         </section>
         <div class="footer">

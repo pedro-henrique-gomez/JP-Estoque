@@ -403,3 +403,44 @@ tr:last-child td {
   background: #f0f0f0;
   font-weight: bold;
 }
+.tabs {
+  flex-wrap: wrap;
+}
+.tabs button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.admin-field {
+  display: block;
+  font-size: 12px;
+  margin: 12px 0;
+}
+.admin-field input,
+.admin-field select {
+  margin-top: 6px;
+}
+#administrationForm fieldset {
+  border: 1px solid #ddd;
+  border-radius: 9px;
+  padding: 12px;
+  margin: 12px 0;
+}
+#administrationForm fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 16px 8px 0;
+}
+#administrationForm input[type="checkbox"] {
+  width: auto;
+}
+#administrationForm [role="alert"] {
+  color: #a32626;
+}
+#history pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 560px;
+  max-height: 260px;
+  overflow: auto;
+}

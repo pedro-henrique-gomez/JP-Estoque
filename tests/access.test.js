@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { canReadContract, canManage } from "../code/ts/access";
+import {
+  canReadContract,
+  canManage,
+  hasPermission,
+  permissions,
+} from "../code/ts/access";
 import { roles } from "../code/ts/types";
 import { demoUsers } from "../code/ts/demo-data";
 import { demoStorage } from "../code/ts/demo-storage";
@@ -12,7 +17,18 @@ describe("regras demonstrativas", () => {
       expect(canReadContract(user, "contrato-b")).toBe(
         ["diretor", "proprietario", "administrador"].includes(role),
       );
-      expect(canManage(user)).toBe(role === "administrador");
+      const fullAccess = ["proprietario", "administrador"].includes(role);
+      expect(canManage(user)).toBe(fullAccess);
+      for (const permission of permissions) {
+        expect(hasPermission(user, permission)).toBe(
+          fullAccess ||
+            (role === "diretor" && permission === "read_all_contracts"),
+        );
+        expect(hasPermission({ ...user, status: "inativo" }, permission)).toBe(
+          false,
+        );
+        expect(hasPermission(null, permission)).toBe(false);
+      }
       expect(
         canReadContract({ ...user, authorizedContractIds: [] }, "contrato-a"),
       ).toBe(["diretor", "proprietario", "administrador"].includes(role));

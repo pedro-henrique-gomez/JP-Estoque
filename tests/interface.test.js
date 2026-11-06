@@ -23,6 +23,82 @@ beforeEach(async () => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("interface e funcionalidades preservadas", () => {
+  for (const id of ["demo-6", "demo-7"]) {
+    it(`${id} gerencia materiais, usuários, contratos, fornecedores e configurações`, () => {
+      changeUser(id);
+      expect(byId("adminArea").classList.contains("hidden")).toBe(false);
+      window.edit(0);
+      let form = byId("editForm");
+      form.elements.namedItem("code").value = "TEST-ADMIN";
+      form.elements.namedItem("name").value = "Material de teste";
+      form.dispatchEvent(new Event("submit", { cancelable: true }));
+      expect(byId("rows").textContent).toContain("Material de teste");
+      const material = JSON.parse(
+        localStorage.getItem("jp_estoque_demo_v02"),
+      ).materials.find((item) => item.code === "TEST-ADMIN");
+      window.removeMaterial(material.id);
+      expect(byId("rows").textContent).not.toContain("Material de teste");
+      const clickText = (panel, text) =>
+        [...byId(panel).querySelectorAll("button")]
+          .find((button) => button.textContent === text)
+          .click();
+      clickText("users", "Novo usuário");
+      form = byId("administrationForm");
+      form.elements.namedItem("name").value = "Pessoa teste";
+      form.elements.namedItem("email").value = "pessoa@example.invalid";
+      form.querySelector('[name="contracts"]').checked = true;
+      form.dispatchEvent(new Event("submit", { cancelable: true }));
+      expect(byId("users").textContent).toContain("Pessoa teste");
+      clickText("users", "Editar Pessoa teste");
+      form = byId("administrationForm");
+      form.elements.namedItem("status").value = "inativo";
+      form.elements.namedItem("role").value = "diretor";
+      form.dispatchEvent(new Event("submit", { cancelable: true }));
+      expect(byId("users").textContent).toContain("inativo");
+      expect(byId("users").textContent).toContain("Diretor");
+      clickText("contractsAdmin", "Novo contrato");
+      form = byId("administrationForm");
+      form.elements.namedItem("name").value = "Contrato E";
+      form.dispatchEvent(new Event("submit", { cancelable: true }));
+      expect(byId("contractsAdmin").textContent).toContain("Contrato E");
+      expect(byId("permissionHead").textContent).toContain("Contrato E");
+      clickText("contractsAdmin", "Excluir Contrato E");
+      expect(byId("contractsAdmin").textContent).not.toContain("Contrato E");
+      clickText("suppliersAdmin", "Novo fornecedor");
+      form = byId("administrationForm");
+      form.elements.namedItem("name").value = "Fornecedor teste";
+      form.elements.namedItem("areas").value = "Elétrica";
+      form.elements.namedItem("contact").value = "Teste";
+      form.dispatchEvent(new Event("submit", { cancelable: true }));
+      expect(byId("suppliersAdmin").textContent).toContain("Fornecedor teste");
+      clickText("suppliersAdmin", "Excluir Fornecedor teste");
+      expect(byId("suppliersAdmin").textContent).not.toContain(
+        "Fornecedor teste",
+      );
+      clickText("settings", "Editar configurações");
+      form = byId("administrationForm");
+      form.elements.namedItem("systemName").value = "JP Estoque Teste";
+      form.dispatchEvent(new Event("submit", { cancelable: true }));
+      expect(document.querySelector(".brand b").textContent).toBe(
+        "JP Estoque Teste",
+      );
+      expect(byId("history").textContent).toContain("Usuário criado");
+      expect(byId("history").textContent).toContain("Material excluído");
+      expect(byId("history").textContent).toContain(
+        "Configurações atualizadas",
+      );
+      const snapshot = JSON.parse(
+        localStorage.getItem("jp_estoque_admin_demo_v02"),
+      );
+      expect(
+        snapshot.users.find((user) => user.name === "Pessoa teste").status,
+      ).toBe("inativo");
+      changeUser("demo-5");
+      expect(byId("users").textContent).toBe("");
+      expect(byId("history").textContent).toBe("");
+      expect(byId("adminArea").classList.contains("hidden")).toBe(true);
+    });
+  }
   it("consulta, detalhes e opções respeitam contratos; troca fecha detalhes", () => {
     expect(byId("statProducts").textContent).toBe("2");
     expect([...byId("contract").options].map((o) => o.value)).toEqual([
