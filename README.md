@@ -1,13 +1,16 @@
-# JP Estoque 0.9 ? importação Excel online local
+﻿# JP Estoque 1.0 — preparação para piloto controlado
 
-Demonstração como padrão, com identidade visual e dados locais preservados. A seleção de perfis demonstrativa não é autenticação. O modo online experimental usa somente Supabase local e configuração explícita de desenvolvimento, sem publicação nem conexão remota.
+**Status: NÃO APROVADO PARA PILOTO.** A preparação técnica e os ensaios locais não substituem os critérios de segurança, infraestrutura e operação da JP. Demonstração permanece padrão; online é exclusivamente Supabase local e desenvolvimento explícito. Nenhuma publicação, banco remoto, conta real ou dado corporativo foi utilizado.
 
-`npm run dev` abre a demonstração. `npm run dev:online` cria um stack descartável com identidades fictícias e login Auth real, em `http://127.0.0.1:5183/code/html/index.html`. O terminal informa o caminho local das credenciais de teste sem imprimir segredos. Docker Linux e portas livres são necessários. Proprietário/administrador podem manter os cadastros aprovados na v0.8 e importar fotografias absolutas de saldos na v0.9, com prévia, confirmação e transação no servidor. Não há movimentações de estoque.
+[Relatório v1.0](docs/relatorio-v10.md) · [Matriz de riscos](docs/riscos-v10.md) · [Segurança e desempenho](docs/seguranca-desempenho-v10.md) · [Checklist](docs/checklist-piloto-v10.md) · [Operação](docs/operacao-v10.md) · [Backup/restauração](docs/backup-restauracao-v10.md) · [Decisões da JP](docs/pendencias-jp-v10.md).
 
-[Fluxo, segurança, limites e configuração v0.9](docs/importacao-online-v09.md). [Relatório de validação](docs/relatorio-v09.md). Execute `npm run verify:v09` para todas as regressões. As quatro migrações históricas permanecem intactas; a quinta acrescenta duas RPCs e retira a escrita direta dos logs de importação para exigir o lote atômico. O importador demonstrativo existente não foi alterado. Não pronto para produção.
+`npm run dev` abre a demonstração. `npm run dev:online` cria stack descartável e identidades fictícias, com login real em `http://127.0.0.1:5183/code/html/index.html`. O terminal informa somente o caminho local das credenciais de teste. Docker Linux e portas livres são necessários. Seleção de perfis na demonstração não é autenticação nem proteção de dados reais.
 
-Histórico preservado: [v0.8](docs/relatorio-v08.md), [v0.7](docs/relatorio-v07.md), [administração online](docs/administracao-local-v08.md).
+`npm run verify:v10` reúne regressões, ensaios operacionais e auditoria npm. `npm run test:readiness` testa Auth/convite/recovery/TOTP, formatos/volumes de XLSX, bloqueios, XSS e dump/restauração cifrada **em laboratório**, sem SMTP real. `npm run audit:dependencies` gera inventário de licenças e advisories npm; não substitui scan de imagens/binários. `npm run audit:images` analisa as quatro imagens públicas locais; o gate está bloqueado por achados altos/críticos e `verify:v10` não deve ser considerado aprovado. Resultados temporários, backups e planilhas são ignorados pelo Git.
 
+Funcionalidades e importador da v0.9 preservados. A v1.0 neutraliza fórmulas somente no CSV exportado, adiciona headers locais e limita a varredura do Vite; não altera localStorage, importação demonstrativa, cinco migrações, RLS/RPC ou processos de RM/OC/compras/recebimento. Não implementa movimentos de estoque. MFA obrigatório, recuperação pela UI, HTTPS/artefato online, DR completo e decisões corporativas continuam pendentes.
+
+Histórico: [importação online v0.9](docs/importacao-online-v09.md), [validação v0.9](docs/relatorio-v09.md), [administração v0.8](docs/relatorio-v08.md), [consulta/Auth v0.7](docs/relatorio-v07.md).
 Depois de interromper o launcher online com Ctrl+C, execute `npm run dev:online:stop` para confirmar a limpeza do stack descartável no Windows. Esse comando preserva backups e recusa encerrar uma execução ainda ativa ou diferente.
 
 ```text

@@ -35,6 +35,9 @@ c = c
   .replace("[api]", "[api]\nport = 56321")
   .replace("[db]", "[db]\nport = 56322\nshadow_port = 56320")
   .replace("[auth]", `[auth]\njwt_expiry = ${jwtTtl}`);
+if (process.env.JP_READINESS === "1")
+  c +=
+    "\n[auth.email]\nenable_confirmations = true\n[auth.mfa.totp]\nenroll_enabled = true\nverify_enabled = true\n";
 c +=
   "\n[studio]\nenabled = false\n[storage]\nenabled = false\n[realtime]\nenabled = false\n[local_smtp]\nenabled = false\n[edge_runtime]\nenabled = false\n[db.pooler]\nenabled = false\n";
 await writeFile(join(p.workspace, "supabase/config.toml"), c);

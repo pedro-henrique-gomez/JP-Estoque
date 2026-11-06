@@ -1,6 +1,12 @@
 import { defineConfig, loadEnv } from "vite";
 import { resolveOnlineConfiguration } from "./code/ts/data/online-config.ts";
 import { resolve } from "node:path";
+const securityHeaders = {
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "no-referrer",
+  "X-Frame-Options": "DENY",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+};
 
 export default defineConfig(({ mode, command, isPreview }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
@@ -20,6 +26,15 @@ export default defineConfig(({ mode, command, isPreview }) => {
     );
   return {
     server: {
+      headers: securityHeaders,
+      watch: {
+        ignored: [
+          "**/.integration-local/**",
+          "**/.local-db/**",
+          "**/test-results/**",
+          "**/imports/**",
+        ],
+      },
       fs: {
         strict: true,
         allow: ["code", "img", "public", "node_modules"].map((path) =>
@@ -38,6 +53,8 @@ export default defineConfig(({ mode, command, isPreview }) => {
       },
     },
     base: "./",
+    optimizeDeps: { entries: ["code/html/index.html"] },
+    preview: { headers: securityHeaders },
     build: { rollupOptions: { input: "code/html/index.html" } },
     test: { environment: "jsdom", include: ["tests/**/*.test.js"] },
   };

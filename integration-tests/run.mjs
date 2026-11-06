@@ -9,13 +9,17 @@ import {
 import { blockedReport } from "./cases.mjs";
 import { assertWorkspace } from "./safety.mjs";
 const root = process.cwd();
+const readiness = process.argv.includes("--readiness");
 const manual = process.argv.includes("--serve-online");
 const online = manual || process.argv.includes("--online-ui");
-const reportPath = manual
-  ? ".integration-local/manual-results.json"
-  : online
-    ? "test-results/online-results.json"
-    : "test-results/integration-results.json";
+if (readiness && online) throw Error("Select only one isolated stack mode");
+const reportPath = readiness
+  ? "test-results/readiness-results.json"
+  : manual
+    ? ".integration-local/manual-results.json"
+    : online
+      ? "test-results/online-results.json"
+      : "test-results/integration-results.json";
 await mkdir(".integration-local", { recursive: true });
 await mkdir("test-results", { recursive: true });
 const lock = await open(".integration-local/run.lock", "wx");
@@ -48,7 +52,21 @@ try {
   if (!evidence.runtimeReady) {
     await writeFile(
       reportPath,
-      JSON.stringify(blockedReport(evidence), null, 2),
+      JSON.stringify(
+        readiness
+          ? {
+              version: "1.0.0",
+              status: "blocked",
+              pilotReady: false,
+              executed: 0,
+              passed: 0,
+              blocked: 11,
+              reason: "LOCAL_RUNTIME_UNAVAILABLE",
+            }
+          : blockedReport(evidence),
+        null,
+        2,
+      ),
     );
     process.exitCode = 2;
   } else {
@@ -59,7 +77,8 @@ try {
     started = true;
     await invoke(process.execPath, ["integration-tests/start-local.mjs"], {
       ...process.env,
-      JP_LOCAL_JWT_TTL: online ? "180" : "60",
+      JP_LOCAL_JWT_TTL: online || readiness ? "180" : "60",
+      JP_READINESS: readiness ? "1" : "0",
     });
     if (manual) {
       const p = JSON.parse(
@@ -71,7 +90,11 @@ try {
       );
     }
     await invoke(process.execPath, [
-      online ? "online-tests/run.mjs" : "integration-tests/execute-local.mjs",
+      readiness
+        ? "readiness-tests/run.mjs"
+        : online
+          ? "online-tests/run.mjs"
+          : "integration-tests/execute-local.mjs",
       ...(manual ? ["--serve"] : []),
     ]);
     if (manual)
@@ -103,7 +126,7 @@ try {
           reason: "LOCAL_STACK_SETUP_FAILED",
           executed: 0,
           passed: 0,
-          blocked: 18,
+          blocked: readiness ? 11 : 18,
           message: redactDiagnostic(e.message),
         },
         null,

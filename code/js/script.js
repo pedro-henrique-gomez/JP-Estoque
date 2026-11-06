@@ -1,4 +1,5 @@
 import { mountImport } from "../ts/import-interface.ts";
+import { safeCsvCell } from "../ts/csv-export.ts";
 import { codeKey, globalFields } from "../ts/inventory.ts";
 import { canManage, hasPermission } from "../ts/access.ts";
 import {
@@ -511,8 +512,7 @@ document.querySelectorAll("[data-tab]").forEach(
     }),
 );
 function csvEscape(v) {
-  const s = String(v ?? "");
-  return '"' + s.replaceAll('"', '""') + '"';
+  return safeCsvCell(v);
 }
 document.getElementById("exportConsult").onclick = () => {
   const headers = [
