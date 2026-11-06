@@ -165,11 +165,17 @@ test("xlsx UI exact snapshot, explicit confirmation, references and preserved ab
     unit: "m",
   });
   const product = (await p.json())[0];
-  await api(request, s.t, "contract_balances", "post", {
-    product_id: product.id,
-    contract_id: s.id,
-    quantity: "11.111111",
+  const seeded = await api(request, s.t, "rpc/stock_post", "post", {
+    request: {
+      kind: "entrada",
+      product_id: product.id,
+      contract_id: s.id,
+      quantity: "11.111111",
+      expected_quantity: "0",
+      idempotency_key: randomUUID(),
+    },
   });
+  expect(seeded.status()).toBe(200);
   await api(request, s.t, "locations", "post", {
     contract_id: s.id,
     code: "L-IMP",
@@ -487,17 +493,17 @@ test("concurrent stock edit invalidates preview; explicit refreshed replacement 
     s.t,
     `contract_balances?contract_id=eq.${s.id}`,
   );
-  expect(
-    (
-      await api(
-        request,
-        s.t,
-        `contract_balances?id=eq.${balances[0].id}`,
-        "patch",
-        { quantity: "9.000001" },
-      )
-    ).status(),
-  ).toBe(200);
+  const edit = await api(request, s.t, "rpc/stock_post", "post", {
+    request: {
+      kind: "entrada",
+      product_id: balances[0].product_id,
+      contract_id: s.id,
+      quantity: "7.75",
+      expected_quantity: "1.250001",
+      idempotency_key: randomUUID(),
+    },
+  });
+  expect(edit.status()).toBe(200);
   const stale = await rpc(request, s.t, "commit", { preview_token: p.token });
   expect((await stale.json()).code).toBe("40001");
   expect(

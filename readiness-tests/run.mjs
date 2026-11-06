@@ -549,13 +549,11 @@ try {
           ),
         );
         const parseMs = performance.now() - parseStart;
-        source.rows = parsed[0].rows
-          .slice(1)
-          .map((cells, i) => ({
-            ...row(cells[0].text, cells[3].text, i + 2),
-            description: cells[1].text,
-            unit: cells[2].text,
-          }));
+        source.rows = parsed[0].rows.slice(1).map((cells, i) => ({
+          ...row(cells[0].text, cells[3].text, i + 2),
+          description: cells[1].text,
+          unit: cells[2].text,
+        }));
         assert.equal(source.rows.length, n);
         let start = performance.now();
         const pp = await rpc("preview", { request: source });
@@ -647,6 +645,22 @@ try {
       assert.equal(candidates.length, 1);
       const container = candidates[0];
       assert.match(container, /^supabase_db_jp-e2e-[0-9a-f-]+$/);
+      const opening = await rest("contract_balances_api?contract_id=eq." + f.a);
+      assert.equal(opening.status, 200);
+      const posted = await http("/rest/v1/rpc/stock_post", {
+        method: "POST",
+        data: {
+          request: {
+            kind: "entrada",
+            contract_id: f.a,
+            product_id: opening.body[0].product_id,
+            quantity: "0.000001",
+            expected_quantity: opening.body[0].quantity,
+            idempotency_key: randomUUID(),
+          },
+        },
+      });
+      assert.equal(posted.status, 200);
       const before = await fingerprint(db),
         key = randomBytes(32);
       let start = performance.now();
@@ -716,7 +730,7 @@ try {
       const funcs = async (c) =>
         (
           await c.query(
-            "select n.nspname,p.proname,p.proacl,pg_get_functiondef(p.oid) definition from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' or (n.nspname='public' and p.proname like 'admin_%') order by 1,2",
+            "select n.nspname,p.proname,p.proacl,pg_get_functiondef(p.oid) definition from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' or (n.nspname='public' and (p.proname like 'admin_%' or p.proname like 'stock_%')) order by 1,2",
           )
         ).rows;
       assert.deepEqual(await funcs(restored), await funcs(db));
@@ -728,6 +742,7 @@ try {
         ).rows;
       assert.deepEqual(await constraints(restored), await constraints(db));
       metrics.backup.constraintsCompared = true;
+      metrics.backup.stockMovementPreserved = true;
       await restored.query("begin;set local role authenticated");
       await restored.query(
         "select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claims',$2,true)",

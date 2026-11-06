@@ -63,7 +63,7 @@ try {
         "select c.relname,c.relrowsecurity,c.relforcerowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' order by c.relname",
       )
     ).rows;
-    assert.equal(rls.length, 12);
+    assert.equal(rls.length, 17);
     assert.ok(rls.every((t) => t.relrowsecurity && t.relforcerowsecurity));
     const { cases, http } = await executeCases({
       api,

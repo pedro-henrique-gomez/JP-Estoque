@@ -131,11 +131,8 @@ for (const role of [
   }) => {
     await login(page, role);
     const t = await token(page);
-    await page.locator("#onlineAdmin").click();
-    await expect(page.locator("#onlineAdminMessage")).toContainText(
-      "não autorizado",
-    );
-    await expect(page.locator("#onlineAdminContent")).toBeEmpty();
+    await expect(page.locator("#onlineAdmin")).toBeHidden();
+    await expect(page.locator("#stockNav-users")).toBeHidden();
     const marker = "DENIED-" + randomUUID();
     for (const [table, data] of [
       [

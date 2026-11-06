@@ -472,7 +472,21 @@ export async function executeCases({ api, anon, service, db }) {
         Object.keys(spec.paths)
           .filter((p) => p.startsWith("/rpc/"))
           .sort(),
-        ["/rpc/admin_import_commit", "/rpc/admin_import_preview", "/rpc/admin_save_profile", "/rpc/admin_set_user_contract"],
+        [
+          "/rpc/admin_import_commit",
+          "/rpc/admin_import_preview",
+          "/rpc/admin_save_profile",
+          "/rpc/admin_set_user_contract",
+          "/rpc/stock_admin_snapshot",
+          "/rpc/stock_assign_role",
+          "/rpc/stock_context",
+          "/rpc/stock_history",
+          "/rpc/stock_post",
+          "/rpc/stock_report",
+          "/rpc/stock_reverse",
+          "/rpc/stock_save_role",
+          "/rpc/stock_set_override",
+        ],
       );
       assert.ok(
         !JSON.stringify(spec).includes("/rpc/require_other_user_admin"),

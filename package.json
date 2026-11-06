@@ -1,6 +1,6 @@
 {
   "name": "jp-estoque",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -23,7 +23,9 @@
     "test:readiness": "node integration-tests/run.mjs --readiness",
     "audit:dependencies": "node scripts/operations/dependencies.mjs",
     "verify:v10": "npm run test:all && npm run test:integration && npm run test:online && npm run test:readiness && npm run audit:dependencies && npm run audit:images",
-    "audit:images": "node scripts/operations/images.mjs"
+    "audit:images": "node scripts/operations/images.mjs",
+    "test:stock": "node integration-tests/run.mjs --stock",
+    "verify:v11": "npm run test:all && npm run test:integration && npm run test:online && npm run test:stock && npm run test:readiness && npm run audit:dependencies && npm run audit:images"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",

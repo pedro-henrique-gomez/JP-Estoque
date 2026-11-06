@@ -1,3 +1,4 @@
+import { createStockService } from "./stock";
 import { createClient } from "@supabase/supabase-js";
 import type { OnlineConfiguration } from "./online-config";
 import { localApiUrl } from "./online-config";
@@ -147,6 +148,7 @@ export function createOnlineBackend(
   }
   return {
     client,
+    stock: createStockService(client),
     administration: createOnlineAdministration(client, verifiedProfile),
     async login(email: string, password: string) {
       const result = await client.auth.signInWithPassword({ email, password });

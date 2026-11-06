@@ -9,17 +9,21 @@ import {
 import { blockedReport } from "./cases.mjs";
 import { assertWorkspace } from "./safety.mjs";
 const root = process.cwd();
+const stock = process.argv.includes("--stock");
 const readiness = process.argv.includes("--readiness");
 const manual = process.argv.includes("--serve-online");
 const online = manual || process.argv.includes("--online-ui");
-if (readiness && online) throw Error("Select only one isolated stack mode");
-const reportPath = readiness
-  ? "test-results/readiness-results.json"
-  : manual
-    ? ".integration-local/manual-results.json"
-    : online
-      ? "test-results/online-results.json"
-      : "test-results/integration-results.json";
+if ([stock, readiness, online].filter(Boolean).length > 1)
+  throw Error("Select only one isolated stack mode");
+const reportPath = stock
+  ? "test-results/stock-results.json"
+  : readiness
+    ? "test-results/readiness-results.json"
+    : manual
+      ? ".integration-local/manual-results.json"
+      : online
+        ? "test-results/online-results.json"
+        : "test-results/integration-results.json";
 await mkdir(".integration-local", { recursive: true });
 await mkdir("test-results", { recursive: true });
 const lock = await open(".integration-local/run.lock", "wx");
@@ -53,17 +57,27 @@ try {
     await writeFile(
       reportPath,
       JSON.stringify(
-        readiness
+        stock
           ? {
-              version: "1.0.0",
+              version: "1.1.0",
               status: "blocked",
               pilotReady: false,
               executed: 0,
               passed: 0,
-              blocked: 11,
+              blocked: 29,
               reason: "LOCAL_RUNTIME_UNAVAILABLE",
             }
-          : blockedReport(evidence),
+          : readiness
+            ? {
+                version: "1.0.0",
+                status: "blocked",
+                pilotReady: false,
+                executed: 0,
+                passed: 0,
+                blocked: 11,
+                reason: "LOCAL_RUNTIME_UNAVAILABLE",
+              }
+            : blockedReport(evidence),
         null,
         2,
       ),
@@ -77,7 +91,7 @@ try {
     started = true;
     await invoke(process.execPath, ["integration-tests/start-local.mjs"], {
       ...process.env,
-      JP_LOCAL_JWT_TTL: online || readiness ? "180" : "60",
+      JP_LOCAL_JWT_TTL: online || readiness || stock ? "180" : "60",
       JP_READINESS: readiness ? "1" : "0",
     });
     if (manual) {
@@ -90,11 +104,13 @@ try {
       );
     }
     await invoke(process.execPath, [
-      readiness
-        ? "readiness-tests/run.mjs"
-        : online
-          ? "online-tests/run.mjs"
-          : "integration-tests/execute-local.mjs",
+      stock
+        ? "stock-tests/run.mjs"
+        : readiness
+          ? "readiness-tests/run.mjs"
+          : online
+            ? "online-tests/run.mjs"
+            : "integration-tests/execute-local.mjs",
       ...(manual ? ["--serve"] : []),
     ]);
     if (manual)
@@ -126,7 +142,7 @@ try {
           reason: "LOCAL_STACK_SETUP_FAILED",
           executed: 0,
           passed: 0,
-          blocked: readiness ? 11 : 18,
+          blocked: stock ? 29 : readiness ? 11 : 18,
           message: redactDiagnostic(e.message),
         },
         null,

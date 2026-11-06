@@ -1,3 +1,4 @@
+import { mountStock } from "./stock-interface";
 import {
   createOnlineBackend,
   OnlineError,
@@ -5,22 +6,22 @@ import {
   type OnlineRow,
 } from "./data/online";
 import type { OnlineConfiguration } from "./data/online-config";
-import { roleLabels } from "./access";
 import { mountOnlineAdministration } from "./online-admin-interface";
 
 export async function mountOnline(configuration: OnlineConfiguration) {
   const backend = createOnlineBackend(configuration, window.sessionStorage);
   const main = document.querySelector<HTMLElement>("main")!;
   document.querySelector(".nav")!.innerHTML =
-    '<button class="active" id="onlineConsult">Consultar materiais</button><button id="onlineAdmin">Administração</button>';
+    '<button class="active" id="onlineConsult" hidden>Consultar materiais</button><button id="onlineAdmin" hidden>Administração</button>';
   document.querySelector(".sidefoot")!.textContent =
-    "v1.0 experimental · Supabase local · Somente dados fictícios";
+    "v1.1 experimental · Supabase local · Somente dados fictícios";
   main.innerHTML = `<header class="top"><div><p class="eyebrow">JP ENGENHARIA E PROJETOS / ESTOQUE</p><h1>Consulta de materiais</h1><p>Ambiente experimental de desenvolvimento. Sem uso em produção.</p></div><span class="pill">Supabase local · Consulta online</span></header>
     <p id="onlineStatus" class="notice" role="status" aria-live="polite">Verificando sessão…</p>
     <section id="onlineLogin" class="panel online-login" hidden aria-labelledby="loginTitle"><h2 id="loginTitle">Entrar no Supabase local</h2><p>Use uma identidade fictícia provisionada no ambiente local. Este formulário realiza autenticação real.</p><form id="loginForm"><label class="label" for="email">Email</label><input id="email" type="email" autocomplete="username" required /><label class="label" for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required /><button type="submit" class="btn primary">Entrar</button></form></section>
     <div id="sessionControls" class="online-session" hidden><span id="onlineIdentity"></span><button id="refreshOnline" class="btn">Atualizar consulta</button><button id="logoutOnline" class="btn">Sair</button></div>
     <section id="onlineInventory" class="panel search-panel" hidden><h2>Encontre o material que você precisa</h2><div class="filters"><div><label class="label" for="search">Pesquisar material, código, fabricante, OC ou NF</label><input id="search" type="search" placeholder="Pesquisar materiais…" /></div><div><label class="label" for="contract">Contrato</label><select id="contract"></select></div><div><label class="label" for="category">Categoria</label><select id="category"></select></div></div><button id="clearOnlineFilters" class="btn">Limpar filtros</button><p id="onlineCount" aria-live="polite"></p><div id="onlineResults" class="online-results"></div></section>
     <section id="onlineAdministration" class="panel" hidden><h2>Administração online</h2><p id="onlineAdminMessage"></p></section>
+    <section id="onlineStockWorkspace" class="panel" hidden></section>
     <dialog id="onlineDetail" class="online-detail" aria-labelledby="detailTitle"><h2 id="detailTitle">Detalhes do material</h2><div id="detailBody"></div><form method="dialog"><button class="btn">Fechar</button></form></dialog>`;
   const el = <T extends HTMLElement>(id: string) =>
     document.getElementById(id) as T;
@@ -44,6 +45,8 @@ export async function mountOnline(configuration: OnlineConfiguration) {
     administration,
     backend.administration,
     (error) => {
+      stockUI.clear();
+      el("onlineAdmin").hidden = true;
       snapshot = null;
       inventory.hidden = true;
       el("onlineResults").replaceChildren();
@@ -57,7 +60,25 @@ export async function mountOnline(configuration: OnlineConfiguration) {
       controls.hidden = error.kind === "session";
     },
   );
+  const stockUI = mountStock(
+    el("onlineStockWorkspace"),
+    document.querySelector<HTMLElement>(".nav")!,
+    backend.stock,
+    () => {
+      inventory.hidden = true;
+      snapshot = null;
+      el("onlineResults").replaceChildren();
+      el("detailBody").replaceChildren();
+      contract.replaceChildren();
+      category.replaceChildren();
+      administrativeUI.close();
+      if (dialog.open) dialog.close();
+    },
+  );
   function protect() {
+    stockUI.clear();
+    el("onlineConsult").hidden = true;
+    el("onlineAdmin").hidden = true;
     administrativeUI.close();
     snapshot = null;
     inventory.hidden = true;
@@ -186,6 +207,10 @@ export async function mountOnline(configuration: OnlineConfiguration) {
   }
   async function refresh() {
     if (loading || signedOut) return;
+    if (stockUI.isOpen()) {
+      await stockUI.revalidate();
+      return;
+    }
     if (administrativeUI.isOpen()) {
       await administrativeUI.revalidate();
       return;
@@ -200,12 +225,21 @@ export async function mountOnline(configuration: OnlineConfiguration) {
     try {
       const next = await backend.snapshot();
       if (ticket !== generation || signedOut) return;
+      const stockContext = await backend.stock.context();
+      if (ticket !== generation || signedOut) return;
+      stockUI.update(stockContext);
+      el("onlineConsult").hidden =
+        !stockContext.permissions.includes("estoque.visualizar");
+      el("onlineAdmin").hidden = !stockContext.permissions.includes(
+        "usuarios.visualizar",
+      );
       snapshot = next;
       login.hidden = true;
       controls.hidden = false;
-      inventory.hidden = false;
+      inventory.hidden =
+        !stockContext.permissions.includes("estoque.visualizar");
       el("onlineIdentity").textContent =
-        `${next.profile.name} · ${roleLabels[next.profile.role]}`;
+        `${next.profile.name} · ${stockContext.role}`;
       selectOptions(contract, next.contracts, "Todos os contratos autorizados");
       selectOptions(
         category,
@@ -218,7 +252,13 @@ export async function mountOnline(configuration: OnlineConfiguration) {
         contract.value = previousContract;
       if ([...category.options].some((o) => o.value === previousCategory))
         category.value = previousCategory;
-      setStatus("Consulta atualizada. Acesso controlado pelo servidor (RLS).");
+      setStatus(
+        stockContext.permissions.length === 0
+          ? "Usuário autenticado sem permissões operacionais. Solicite acesso ao responsável."
+          : stockContext.permissions.includes("estoque.visualizar")
+            ? "Consulta atualizada. Acesso controlado pelo servidor (RLS)."
+            : "Selecione uma operação autorizada no menu. A consulta geral de estoque não está habilitada para este usuário.",
+      );
       render();
     } catch (error) {
       if (ticket !== generation) return;
@@ -286,10 +326,12 @@ export async function mountOnline(configuration: OnlineConfiguration) {
     void refresh();
   };
   el("onlineConsult").onclick = () => {
+    stockUI.close();
     administrativeUI.close();
     void refresh();
   };
   el("onlineAdmin").onclick = () => {
+    stockUI.close();
     inventory.hidden = true;
     void administrativeUI.open();
   };

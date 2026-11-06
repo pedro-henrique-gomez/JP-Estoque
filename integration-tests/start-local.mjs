@@ -81,7 +81,9 @@ try {
   console.log("Stack started");
 } catch (e) {
   console.log(
-    redactDiagnostic(String(e.stderr || e.stdout || e.message)).slice(-5000),
+    redactDiagnostic(
+      String(e.stderr || "") + "\n" + String(e.stdout || "") + "\n" + e.message,
+    ).slice(-5000),
   );
   process.exitCode = 1;
 }

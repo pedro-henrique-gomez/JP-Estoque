@@ -1,0 +1,600 @@
+{
+  "version": "1.1.0",
+  "baseCommit": "088de04",
+  "recordedAt": "2026-11-06T17:18:43.435Z",
+  "status": "functional-local-validation-passed-pilot-blocked",
+  "pilotReady": false,
+  "productionReady": false,
+  "remoteDatabaseUsed": false,
+  "deployed": false,
+  "realCorporateDataUsed": false,
+  "commands": {
+    "npm run test:all": "exit 0 with 184 unit checks; later npm test passed 185 after one test-only addition",
+    "npm test": "exit 0, 185 tests in 18 files",
+    "npm run typecheck": "exit 0",
+    "npm run build": "exit 0 after final runtime change",
+    "npm run test:integration": "exit 0",
+    "npm run test:online": "exit 0",
+    "npm run test:stock": "exit 0 after final runtime change",
+    "npm run test:readiness": "exit 0",
+    "npm run audit:dependencies": "exit 0",
+    "npm run audit:images": "not rerun; previous v1.0 HIGH/CRITICAL gate remains unresolved",
+    "npm run verify:v11": "aggregate not executed; unresolved image gate is not approved"
+  },
+  "unit": {
+    "passed": 185,
+    "files": 18,
+    "previous": 165,
+    "new": 20,
+    "evidence": "Vitest terminal exit 0"
+  },
+  "nativePostgres": {
+    "engine": "PostgreSQL 17.11 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+    "passed": 460,
+    "failed": 0,
+    "auth": "test-only auth.users and auth.uid; no Supabase Auth service"
+  },
+  "demoChromium": {
+    "startTime": "2026-11-06T17:08:27.105Z",
+    "duration": 39690.705,
+    "expected": 80,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "onlineRegressions": {
+    "status": "passed",
+    "executed": 64,
+    "passed": 64,
+    "failed": 0,
+    "recordedAt": null
+  },
+  "httpRegressions": {
+    "status": "passed",
+    "executed": 18,
+    "passed": 18,
+    "failed": 0,
+    "recordedAt": "2026-11-06T17:15:51.110Z",
+    "cases": [
+      {
+        "id": "login-correct",
+        "status": "passed",
+        "durationMs": 59
+      },
+      {
+        "id": "login-incorrect",
+        "status": "passed",
+        "durationMs": 53
+      },
+      {
+        "id": "jwt-valid",
+        "status": "passed",
+        "durationMs": 19
+      },
+      {
+        "id": "jwt-invalid",
+        "status": "passed",
+        "durationMs": 15
+      },
+      {
+        "id": "refresh",
+        "status": "passed",
+        "durationMs": 74
+      },
+      {
+        "id": "logout",
+        "status": "passed",
+        "durationMs": 65
+      },
+      {
+        "id": "inactive",
+        "status": "passed",
+        "durationMs": 107
+      },
+      {
+        "id": "no-contract",
+        "status": "passed",
+        "durationMs": 91
+      },
+      {
+        "id": "metadata",
+        "status": "passed",
+        "durationMs": 91
+      },
+      {
+        "id": "self-promotion",
+        "status": "passed",
+        "durationMs": 161
+      },
+      {
+        "id": "cross-contract",
+        "status": "passed",
+        "durationMs": 15
+      },
+      {
+        "id": "rpc-allowed",
+        "status": "passed",
+        "durationMs": 110
+      },
+      {
+        "id": "rpc-denied",
+        "status": "passed",
+        "durationMs": 91
+      },
+      {
+        "id": "revocation",
+        "status": "passed",
+        "durationMs": 74
+      },
+      {
+        "id": "api-exposure",
+        "status": "passed",
+        "durationMs": 209
+      },
+      {
+        "id": "history",
+        "status": "passed",
+        "durationMs": 46
+      },
+      {
+        "id": "profile-matrix",
+        "status": "passed",
+        "durationMs": 442
+      },
+      {
+        "id": "jwt-expired",
+        "status": "passed",
+        "durationMs": 89354
+      }
+    ]
+  },
+  "stock": {
+    "version": "1.1.0",
+    "realAuth": true,
+    "realPostgrest": true,
+    "realChromium": true,
+    "status": "passed",
+    "pilotReady": false,
+    "executed": 29,
+    "blocked": 0,
+    "passed": 29,
+    "failed": 0,
+    "cases": [
+      {
+        "name": "warehouse has genuine Auth identity default permissions and scoped context",
+        "status": "passed",
+        "ms": 27
+      },
+      {
+        "name": "unprivileged inactive director and foreign-contract requests are denied",
+        "status": "passed",
+        "ms": 151
+      },
+      {
+        "name": "positive fractional entry and multiple partial receipts share existing OC",
+        "status": "passed",
+        "ms": 31
+      },
+      {
+        "name": "warehouse issues without administrator approval and produces traceable receipt",
+        "status": "passed",
+        "ms": 16
+      },
+      {
+        "name": "zero negative high precision missing fields and forged actor are rejected atomically",
+        "status": "passed",
+        "ms": 76
+      },
+      {
+        "name": "repeated request key returns original result and rejects changed content",
+        "status": "passed",
+        "ms": 32
+      },
+      {
+        "name": "concurrent exits cannot overspend and stale confirmation cannot overwrite",
+        "status": "passed",
+        "ms": 17
+      },
+      {
+        "name": "direct insert update and delete are denied even to managers",
+        "status": "passed",
+        "ms": 64
+      },
+      {
+        "name": "failed ledger insert rolls back balance and audit after balance update",
+        "status": "passed",
+        "ms": 20
+      },
+      {
+        "name": "reversal appends opposite event preserves original and is idempotent",
+        "status": "passed",
+        "ms": 31
+      },
+      {
+        "name": "reversal requires permission and cannot remove more stock than available",
+        "status": "passed",
+        "ms": 43
+      },
+      {
+        "name": "custom roles assign shared defaults while individual denial affects one user only",
+        "status": "passed",
+        "ms": 118
+      },
+      {
+        "name": "stock denial also applies to direct SQL-backed stock API",
+        "status": "passed",
+        "ms": 24
+      },
+      {
+        "name": "entry registration is independent of general stock and exit permissions",
+        "status": "passed",
+        "ms": 53
+      },
+      {
+        "name": "administrators cannot grant themselves create owners or exceed their ceiling",
+        "status": "passed",
+        "ms": 32
+      },
+      {
+        "name": "custom role cannot indirectly modify its own administrator",
+        "status": "passed",
+        "ms": 36
+      },
+      {
+        "name": "management capabilities are independent without exposing users or elevating grants",
+        "status": "passed",
+        "ms": 84
+      },
+      {
+        "name": "inactive targets cannot bypass administrator grant ceiling",
+        "status": "passed",
+        "ms": 29
+      },
+      {
+        "name": "contract revocation and permission revocation affect existing JWT immediately",
+        "status": "passed",
+        "ms": 35
+      },
+      {
+        "name": "history filters preserve contract isolation and permission changes are audited",
+        "status": "passed",
+        "ms": 52
+      },
+      {
+        "name": "maximum precision stock movement and receipt remain exact text",
+        "status": "passed",
+        "ms": 19
+      },
+      {
+        "name": "export endpoint independently checks export permission and contract scope",
+        "status": "passed",
+        "ms": 53
+      },
+      {
+        "name": "catalog unit cannot silently change after movements",
+        "status": "passed",
+        "ms": 4
+      },
+      {
+        "name": "Chromium desktop real warehouse entry exit receipt and history",
+        "status": "passed",
+        "ms": 1902
+      },
+      {
+        "name": "Chromium desktop owner manages role and per-user permission with confirmation",
+        "status": "passed",
+        "ms": 1344
+      },
+      {
+        "name": "Chromium desktop reader cannot open operational or administrative menus",
+        "status": "passed",
+        "ms": 316
+      },
+      {
+        "name": "Chromium mobile real warehouse entry exit receipt and history",
+        "status": "passed",
+        "ms": 1647
+      },
+      {
+        "name": "Chromium mobile owner manages role and per-user permission with confirmation",
+        "status": "passed",
+        "ms": 1364
+      },
+      {
+        "name": "Chromium mobile reader cannot open operational or administrative menus",
+        "status": "passed",
+        "ms": 298
+      }
+    ],
+    "recordedAt": "2026-11-06T17:18:00.197Z"
+  },
+  "operations": {
+    "status": "passed",
+    "executed": 11,
+    "passed": 11,
+    "failed": 0,
+    "recordedAt": "2026-11-06T17:13:41.804Z",
+    "cases": [
+      {
+        "name": "public signup is denied and does not provision an account",
+        "event": "auth",
+        "status": "passed",
+        "durationMs": 6,
+        "at": "2026-11-06T17:13:33.481Z"
+      },
+      {
+        "name": "trusted invitation confirms address; no public profile elevation",
+        "event": "auth",
+        "status": "passed",
+        "durationMs": 110,
+        "at": "2026-11-06T17:13:33.591Z"
+      },
+      {
+        "name": "unconfirmed email cannot login in confirmation-enabled drill",
+        "event": "auth",
+        "status": "passed",
+        "durationMs": 108,
+        "at": "2026-11-06T17:13:33.700Z"
+      },
+      {
+        "name": "recovery token is genuine single-use and changes password",
+        "event": "auth",
+        "status": "passed",
+        "durationMs": 235,
+        "at": "2026-11-06T17:13:33.935Z"
+      },
+      {
+        "name": "TOTP enroll challenge verify issues genuine AAL2 session",
+        "event": "auth",
+        "status": "passed",
+        "durationMs": 63,
+        "at": "2026-11-06T17:13:33.998Z"
+      },
+      {
+        "name": "identical periodic snapshot retrieves receipt without reverting later balance",
+        "event": "import",
+        "status": "passed",
+        "durationMs": 46,
+        "at": "2026-11-06T17:13:34.067Z"
+      },
+      {
+        "name": "varied fictional warehouse XLSX layouts and exact decimal text",
+        "event": "import",
+        "status": "passed",
+        "durationMs": 95,
+        "at": "2026-11-06T17:13:34.162Z"
+      },
+      {
+        "name": "volume 10 100 500 rows; concurrent authorized reads remain successful",
+        "event": "import",
+        "status": "passed",
+        "durationMs": 2083,
+        "at": "2026-11-06T17:13:36.245Z"
+      },
+      {
+        "name": "global import lock allows reads but delays unrelated catalog writer",
+        "event": "write",
+        "status": "passed",
+        "durationMs": 1051,
+        "at": "2026-11-06T17:13:37.296Z"
+      },
+      {
+        "name": "encrypted pg_dump restores Auth business RLS grants and signing key in NEW database",
+        "event": "backup",
+        "status": "passed",
+        "durationMs": 2120,
+        "at": "2026-11-06T17:13:39.417Z"
+      },
+      {
+        "name": "stored malicious material renders as text in real Chromium",
+        "event": "security",
+        "status": "passed",
+        "durationMs": 2385,
+        "at": "2026-11-06T17:13:41.802Z"
+      }
+    ],
+    "backup": {
+      "dumpMs": 248,
+      "bytes": 650273,
+      "encryptedAtRest": true,
+      "keyPersisted": false,
+      "constraintsCompared": true,
+      "stockMovementPreserved": true,
+      "restoreMs": 1353,
+      "schemasCompared": [
+        "public",
+        "private",
+        "auth",
+        "supabase_migrations"
+      ],
+      "tableCount": 48,
+      "rlsReaderIsolationVerified": true,
+      "newDatabase": true,
+      "fullStackReconnectTested": false
+    },
+    "globalLock": {
+      "readMs": 3,
+      "unrelatedWriterWaitMs": 1045,
+      "controlledHoldMs": 1000,
+      "productionSloValidated": false
+    },
+    "externalPending": [
+      "SMTP delivery and email links in approved HTTPS domain",
+      "Browser recovery confirmation MFA flows and database AAL2 enforcement",
+      "Full-stack restore to separate host with external secrets",
+      "Remediation and reachability triage of container findings, native binary scan and corporate security review",
+      "JP workload RPO RTO retention and periodic snapshot policy",
+      "Production build deployment path remains intentionally disabled"
+    ]
+  },
+  "services": {
+    "postgres": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+    "images": [
+      "public.ecr.aws/supabase/postgrest:v16.5",
+      "public.ecr.aws/supabase/gotrue:v2.197.0",
+      "public.ecr.aws/supabase/kong:2.8.1",
+      "public.ecr.aws/supabase/postgres:17.11.0.011"
+    ]
+  },
+  "rls": [
+    {
+      "relname": "audit_events",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "balance_references",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "contract_balances",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "contracts",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "import_batches",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "import_rows",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "locations",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "products",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "profiles",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "stock_movements",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "stock_role_permissions",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "stock_roles",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "stock_user_permissions",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "stock_user_roles",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "suppliers",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "system_settings",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "user_contracts",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    }
+  ],
+  "migrations": [
+    {
+      "version": "20261105000100"
+    },
+    {
+      "version": "20261105000200"
+    },
+    {
+      "version": "20261105000300"
+    },
+    {
+      "version": "20261105000400"
+    },
+    {
+      "version": "20261106000500"
+    },
+    {
+      "version": "20261106000600"
+    }
+  ],
+  "historicalMigrations": [
+    {
+      "name": "20261105000100_model.sql",
+      "sha256": "75bc78e330d67b023287e67dea003b2a587ca7182796058db992bd3c2312fd3f",
+      "unchangedFromBase": true,
+      "normalization": "LF and trim"
+    },
+    {
+      "name": "20261105000200_rls.sql",
+      "sha256": "9d9ee1c56470df9b0f2c29582837a37b7de61839b84d1f8a99c74683aed43d18",
+      "unchangedFromBase": true,
+      "normalization": "LF and trim"
+    },
+    {
+      "name": "20261105000300_administration_audit.sql",
+      "sha256": "ad6710cc9e9e86f7eaef4ff142b0cc70fbc860eeefed224b27b97efebd63e5d1",
+      "unchangedFromBase": true,
+      "normalization": "LF and trim"
+    },
+    {
+      "name": "20261105000400_read_projection.sql",
+      "sha256": "6aab70a6fd4dce390d0366ec14cf2f9739e4fe668a16f045fbc3dcbc5744568c",
+      "unchangedFromBase": true,
+      "normalization": "LF and trim"
+    },
+    {
+      "name": "20261106000500_online_import.sql",
+      "sha256": "02d0e7ef0d35101a0785a420005bb305039b43721c29feeea70e96c746c86620",
+      "unchangedFromBase": true,
+      "normalization": "LF and trim"
+    }
+  ],
+  "npmAudit": {
+    "recordedAt": "2026-11-06T17:12:47.478Z",
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "registryAuditComplete": true,
+    "inventoryEntries": 190
+  },
+  "limitations": [
+    "Default demo does not register movements; real operations require local Supabase Auth",
+    "Disposable launcher is not an operational persistent database",
+    "Global write mutex serializes unrelated contracts",
+    "Import snapshots and legacy balances remain separate from movement ledger",
+    "JSON receipts and page-limited reports only",
+    "No full-stack restore to separate host or production readiness",
+    "Existing v1.0 security and operational blockers remain"
+  ]
+}

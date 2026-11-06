@@ -1,5 +1,6 @@
 import { mountImport } from "../ts/import-interface.ts";
 import { safeCsvCell } from "../ts/csv-export.ts";
+import { mountDemoMovementInfo } from "../ts/demo-movement-info.ts";
 import { codeKey, globalFields } from "../ts/inventory.ts";
 import { canManage, hasPermission } from "../ts/access.ts";
 import {
@@ -26,6 +27,7 @@ const ui = mountInterface(() => {
   document.getElementById("category").value = "";
   render();
 });
+mountDemoMovementInfo();
 
 const seed = [
   {

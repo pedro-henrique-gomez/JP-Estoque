@@ -1,4 +1,4 @@
-import {importDatabaseChecks} from './import-checks.mjs';
+import { importDatabaseChecks } from "./import-checks.mjs";
 import EmbeddedPostgres from "embedded-postgres";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -256,7 +256,7 @@ try {
         "select relname,relrowsecurity,relforcerowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r'",
       )
     ).rows;
-    assert.equal(rows.length, tables.length);
+    assert.equal(rows.length, tables.length + 5);
     assert(rows.every((row) => row.relrowsecurity && row.relforcerowsecurity));
   });
   await check(
@@ -357,6 +357,22 @@ try {
       ),
     );
     for (const mutation of mutations) {
+      if (mutation.table === "contract_balances") {
+        for (const [verb, sql, params] of [
+          ["INSERT", mutation.insert, []],
+          ["UPDATE", mutation.update, [id(mutation.target)]],
+          [
+            "DELETE",
+            `delete from public.contract_balances where id=$1`,
+            [id(mutation.target)],
+          ],
+        ])
+          await check(
+            `${label}: direct ${verb} balance denied; RPC required`,
+            () => rejectsQuery(user, sql, params),
+          );
+        continue;
+      }
       await check(`${label}: INSERT ${mutation.table}`, () =>
         admin
           ? actor(user, async (c) =>
@@ -514,7 +530,15 @@ try {
         id(101),
       ]),
     );
-    await check(`${label}: direct import append denied (v09 atomic RPC required)`, () => rejectsQuery(user,"insert into public.import_batches(created_by,source_file,sheet_name) values($1,'test.xlsx','Test')",[id(user)]));
+    await check(
+      `${label}: direct import append denied (v09 atomic RPC required)`,
+      () =>
+        rejectsQuery(
+          user,
+          "insert into public.import_batches(created_by,source_file,sheet_name) values($1,'test.xlsx','Test')",
+          [id(user)],
+        ),
+    );
   }
   for (let n = 8; n <= 14; n++) {
     await check(
@@ -658,11 +682,20 @@ try {
     actor(7, async (c) => {
       assert.equal(
         (
-          await c.query(
-            "update public.contract_balances set quantity=0.123456 where id=$1 returning quantity",
-            [id(500)],
-          )
-        ).rows[0].quantity,
+          await c.query("select public.stock_post($1) as receipt", [
+            {
+              kind: "saida",
+              contract_id: id(100),
+              product_id: id(200),
+              quantity: "12.001544",
+              expected_quantity: "12.125000",
+              idempotency_key: randomUUID(),
+              destination: "Ficticio",
+              recipient: "Pessoa Ficticia",
+              recipient_company: "Empresa Ficticia",
+            },
+          ])
+        ).rows[0].receipt.after_quantity,
         "0.123456",
       );
     }),
@@ -686,6 +719,7 @@ try {
         "update public.contract_balances set quantity=$1 where id=$2",
         [quantity, id(500)],
         "23514",
+        "postgres",
       );
   });
   await check(
@@ -696,6 +730,7 @@ try {
         "update public.contract_balances set location_id=$1 where id=$2",
         [id(401), id(500)],
         "23503",
+        "postgres",
       ),
   );
   await check("cross-contract OC/NF relationship rejected", () =>
@@ -714,12 +749,14 @@ try {
         "update public.contract_balances set product_id=$1 where id=$2",
         [id(999), id(500)],
         "23503",
+        "postgres",
       );
       await rejectsQuery(
         7,
         `insert into public.contract_balances(product_id,contract_id,quantity) values('${id(200)}','${id(100)}',1)`,
         [],
         "23505",
+        "postgres",
       );
       await rejectsQuery(
         7,
@@ -825,10 +862,16 @@ try {
     "database audit records verified actor and actual old/new values",
     () =>
       actor(7, async (c) => {
-        await c.query(
-          "update public.contract_balances set quantity=99.125 where id=$1",
-          [id(500)],
-        );
+        await c.query("select public.stock_post($1)", [
+          {
+            kind: "entrada",
+            contract_id: id(100),
+            product_id: id(200),
+            quantity: "87",
+            expected_quantity: "12.125000",
+            idempotency_key: randomUUID(),
+          },
+        ]);
         const row = (
           await c.query(
             "select * from public.audit_events where entity='contract_balances' and operation='UPDATE' order by occurred_at desc limit 1",
@@ -870,6 +913,10 @@ try {
   await check(
     "concurrent administrators cannot deactivate each other leaving no administrator",
     async () => {
+      await client.query(
+        "update public.profiles set role='administrador' where id=$1",
+        [id(7)],
+      );
       const first = server.getPgClient("postgres", "127.0.0.1"),
         second = server.getPgClient("postgres", "127.0.0.1");
       await first.connect();
@@ -886,7 +933,7 @@ try {
           ]);
         }
         await first.query(
-          "select public.admin_save_profile($1,'Owner','owner@example.invalid','proprietario',false)",
+          "select public.admin_save_profile($1,'Owner','owner@example.invalid','administrador',false)",
           [id(7)],
         );
         const secondPid = (await second.query("select pg_backend_pid() as pid"))
@@ -936,13 +983,13 @@ try {
         await first.end();
         await second.end();
         await client.query(
-          "update public.profiles set active=true where id=$1",
+          "update public.profiles set active=true,role='proprietario' where id=$1",
           [id(7)],
         );
       }
     },
   );
-  await importDatabaseChecks({client,actor,id,check});
+  await importDatabaseChecks({ client, actor, id, check });
 } catch (error) {
   if (!results.some((result) => !result.passed))
     results.push({

@@ -1,6 +1,16 @@
-﻿# JP Estoque 1.0 — preparação para piloto controlado
+﻿# JP Estoque 1.1 — preparação para piloto controlado
 
-**Status: NÃO APROVADO PARA PILOTO.** A preparação técnica e os ensaios locais não substituem os critérios de segurança, infraestrutura e operação da JP. Demonstração permanece padrão; online é exclusivamente Supabase local e desenvolvimento explícito. Nenhuma publicação, banco remoto, conta real ou dado corporativo foi utilizado.
+Entrada, saída, comprovantes, histórico, estornos, cargos personalizados e ajustes individuais agora usam RPCs transacionais e Auth real no **Supabase local**. Consulte [uso, arquitetura e permissões](docs/movimentacoes-v11.md) e [relatório e limitações](docs/relatorio-v11.md).
+
+`npm run dev` mantém a demonstração e o endereço `/code/html/index.html`. Nela, os novos menus apenas explicam os formulários: não simulam autenticação nem gravam movimentações. Para exercitar as operações reais com identidades fictícias, use `npm run dev:online` e o endereço informado pelo launcher. Esse ambiente é descartável; não substitui um banco operacional compartilhado. Não há publicação nem conexão remota.
+
+A nova migração `20261106000600_stock_movements.sql` preserva as cinco anteriores, os saldos existentes e o localStorage. Escritas diretas em saldos pela API foram bloqueadas: entradas/saídas usam RPC e importações continuam fotografias, com o fluxo anterior. Não foram implementadas emissão/aprovação de RM ou OC, compras ou comunicação de recebimento.
+
+**Status: NÃO APROVADO PARA PILOTO.** Os bloqueios de segurança e operação documentados na v1.0 continuam aplicáveis, inclusive os achados de imagens Docker. Testes funcionais locais não significam prontidão para produção.
+
+## Histórico v1.0 — preparação para piloto controlado
+
+A preparação técnica e os ensaios locais não substituem os critérios de segurança, infraestrutura e operação da JP. Demonstração permanece padrão; online é exclusivamente Supabase local e desenvolvimento explícito. Nenhuma publicação, banco remoto, conta real ou dado corporativo foi utilizado.
 
 [Relatório v1.0](docs/relatorio-v10.md) · [Matriz de riscos](docs/riscos-v10.md) · [Segurança e desempenho](docs/seguranca-desempenho-v10.md) · [Checklist](docs/checklist-piloto-v10.md) · [Operação](docs/operacao-v10.md) · [Backup/restauração](docs/backup-restauracao-v10.md) · [Decisões da JP](docs/pendencias-jp-v10.md).
 

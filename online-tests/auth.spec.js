@@ -77,10 +77,12 @@ test("protected initial page and wrong login preserve localStorage", async ({
       "existing-admin-unchanged",
     );
   });
-  await page.locator("#onlineAdmin").click();
-  await expect(page.locator("#onlineAdminMessage")).toContainText(
-    "Entre com uma sessão",
+  await expect(page.locator("#onlineAdmin")).toBeHidden();
+  const denied = await page.request.post(
+    fixture.api + "/rest/v1/rpc/stock_context",
+    { headers: { apikey: fixture.anon }, data: {} },
   );
+  expect([401, 403]).toContain(denied.status());
   await page
     .getByLabel("Email", { exact: true })
     .fill(fixture.users.reader.email);
@@ -184,10 +186,19 @@ test("verified session recovery ignores forged local identity and logout protect
   await page.reload();
   await expect(page.locator("#onlineInventory")).toBeVisible();
   await expect(page.locator("#onlineResults")).not.toContainText("ONLINE-B");
-  await page.locator("#onlineAdmin").click();
-  await expect(page.locator("#onlineAdminMessage")).toContainText(
-    "não autorizado",
+  await expect(page.locator("#onlineAdmin")).toBeHidden();
+  await expect(page.locator("#stockNav-users")).toBeHidden();
+  const denied = await page.request.post(
+    fixture.api + "/rest/v1/rpc/stock_admin_snapshot",
+    {
+      headers: {
+        apikey: fixture.anon,
+        Authorization: "Bearer " + (await session(page)).access_token,
+      },
+      data: {},
+    },
   );
+  expect(denied.status()).toBe(403);
   await page.getByRole("button", { name: "Sair", exact: true }).click();
   await expect(page.locator("#onlineLogin")).toBeVisible();
   await expect(page.locator("#onlineInventory")).toBeHidden();
