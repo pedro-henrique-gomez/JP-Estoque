@@ -36,6 +36,7 @@ export function localOnlyEnvironment(
 }
 export function redactDiagnostic(text) {
   return text
+    .replace(/jpimp1:[A-Za-z0-9+/=]+\.[a-f0-9]{64}/g, "[REDACTED_PREVIEW]")
     .replace(/(?:sb_secret_|sb_publishable_)[\w-]+/g, "[REDACTED_KEY]")
     .replace(/eyJ[\w-]+\.[\w-]+\.[\w-]+/g, "[REDACTED_JWT]")
     .replace(/(postgres(?:ql)?:\/\/)[^\s]+/gi, "$1[REDACTED]")

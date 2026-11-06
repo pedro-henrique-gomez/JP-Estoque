@@ -1,10 +1,12 @@
-# JP Estoque 0.8 — administração Supabase local experimental
+# JP Estoque 0.9 ? importação Excel online local
 
-Protótipo com a identidade visual da JP e dados fictícios. O modo demonstração é o padrão: sua seleção de perfil **não é login**, e seus botões/filtros não protegem dados reais. O modo online mantém login/consulta reais da v0.7 e acrescenta administração na v0.8, exclusivamente em Supabase local e desenvolvimento explícito. Não há publicação nem banco remoto.
+Demonstração como padrão, com identidade visual e dados locais preservados. A seleção de perfis demonstrativa não é autenticação. O modo online experimental usa somente Supabase local e configuração explícita de desenvolvimento, sem publicação nem conexão remota.
 
-`npm run dev` mantém a demonstração. `npm run dev:online` cria um ambiente local descartável com Auth/PostgREST para testar a interface em `http://127.0.0.1:5183/code/html/index.html`. O terminal informa somente o caminho local das credenciais fictícias, sem imprimir senhas ou segredos. Docker Linux e portas livres são necessários. Proprietário e administrador podem manter catálogo global, contratos, fornecedores, localizações, perfis/vínculos de outros usuários e ler auditoria. Saldos, movimentações e importação online não são editados nesse painel. A demonstração e a importação Excel local foram preservadas.
+`npm run dev` abre a demonstração. `npm run dev:online` cria um stack descartável com identidades fictícias e login Auth real, em `http://127.0.0.1:5183/code/html/index.html`. O terminal informa o caminho local das credenciais de teste sem imprimir segredos. Docker Linux e portas livres são necessários. Proprietário/administrador podem manter os cadastros aprovados na v0.8 e importar fotografias absolutas de saldos na v0.9, com prévia, confirmação e transação no servidor. Não há movimentações de estoque.
 
-Configuração, permissões e limites atuais: [administração local v0.8](docs/administracao-local-v08.md). Validação: `npm run verify:v08`; [resultados](docs/relatorio-v08.md). As quatro migrações/RLS permanecem intactas; os mecanismos existentes já contemplavam as operações necessárias. Não pronto para produção. [Resultados históricos v0.7](docs/relatorio-v07.md).
+[Fluxo, segurança, limites e configuração v0.9](docs/importacao-online-v09.md). [Relatório de validação](docs/relatorio-v09.md). Execute `npm run verify:v09` para todas as regressões. As quatro migrações históricas permanecem intactas; a quinta acrescenta duas RPCs e retira a escrita direta dos logs de importação para exigir o lote atômico. O importador demonstrativo existente não foi alterado. Não pronto para produção.
+
+Histórico preservado: [v0.8](docs/relatorio-v08.md), [v0.7](docs/relatorio-v07.md), [administração online](docs/administracao-local-v08.md).
 
 Depois de interromper o launcher online com Ctrl+C, execute `npm run dev:online:stop` para confirmar a limpeza do stack descartável no Windows. Esse comando preserva backups e recusa encerrar uma execução ainda ativa ou diferente.
 
@@ -35,7 +37,7 @@ Consulta, busca, filtros, detalhes, fornecedores, exportação CSV, restauraçã
 
 Materiais fictícios ficam em `jp_estoque_demo_v02`, com recuperação de dados válidos da v0.1. Usuários, vínculos, fornecedores, contratos, histórico e configurações de teste ficam em `jp_estoque_admin_demo_v02`. Esses dados não são seguros ou compartilhados. O histórico é demonstrativo e adulterável. A escolha do seletor não é persistida; nenhum token/sessão é criado. Não inserir dados reais. Para retornar às fixtures iniciais, remova ambas as chaves de teste e recarregue (remova também as chaves v0.1 se não quiser a recuperação antiga).
 
-A [arquitetura futura](docs/arquitetura.md) define adaptadores para Supabase Auth e autorização real com RLS. O SQL é uma proposta não aplicada; a integração e a validação do banco ficam para a próxima etapa.
+A [arquitetura futura](docs/arquitetura.md) define adaptadores para Supabase Auth e autorização real com RLS. A proposta histórica foi sucedida pelas migrações versionadas e pelas validações locais das versões v0.5 a v0.9; consulte os relatórios correspondentes.
 
 ## Importação v0.3
 

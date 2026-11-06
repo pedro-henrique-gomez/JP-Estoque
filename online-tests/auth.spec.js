@@ -246,7 +246,7 @@ test("owner sees all contracts and approved administration without stock or impo
     "Cadastros online disponíveis",
   );
   await expect(
-    page.getByRole("button", { name: /Importar|movimentar|Editar saldo/i }),
+    page.getByRole("button", { name: /movimentar|Editar saldo/i }),
   ).toHaveCount(0);
 });
 

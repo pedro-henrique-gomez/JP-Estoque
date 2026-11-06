@@ -1,3 +1,4 @@
+import {importDatabaseChecks} from './import-checks.mjs';
 import EmbeddedPostgres from "embedded-postgres";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -513,31 +514,7 @@ try {
         id(101),
       ]),
     );
-    await check(`${label}: append import report`, () =>
-      admin
-        ? actor(user, async (c) => {
-            const batch = (
-              await c.query(
-                "insert into public.import_batches(created_by,source_file,sheet_name) values($1,'test.xlsx','Test') returning id",
-                [id(user)],
-              )
-            ).rows[0].id;
-            assert.equal(
-              (
-                await c.query(
-                  "insert into public.import_rows(batch_id,source_line,status) values($1,1,'success')",
-                  [batch],
-                )
-              ).rowCount,
-              1,
-            );
-          })
-        : rejectsQuery(
-            user,
-            "insert into public.import_batches(created_by,source_file,sheet_name) values($1,'test.xlsx','Test')",
-            [id(user)],
-          ),
-    );
+    await check(`${label}: direct import append denied (v09 atomic RPC required)`, () => rejectsQuery(user,"insert into public.import_batches(created_by,source_file,sheet_name) values($1,'test.xlsx','Test')",[id(user)]));
   }
   for (let n = 8; n <= 14; n++) {
     await check(
@@ -965,6 +942,7 @@ try {
       }
     },
   );
+  await importDatabaseChecks({client,actor,id,check});
 } catch (error) {
   if (!results.some((result) => !result.passed))
     results.push({

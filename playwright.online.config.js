@@ -16,9 +16,25 @@ export default defineConfig({
     video: "off",
   },
   projects: [
-    { name: "online-desktop" },
+    { name: "online-desktop", testIgnore: "**/import.spec.js" },
     {
       name: "online-mobile",
+      testIgnore: "**/import.spec.js",
+      use: {
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+    {
+      name: "online-import-desktop",
+      testMatch: "**/import.spec.js",
+      dependencies: ["online-desktop", "online-mobile"],
+    },
+    {
+      name: "online-import-mobile",
+      testMatch: "**/import.spec.js",
+      dependencies: ["online-desktop", "online-mobile"],
       use: {
         viewport: { width: 390, height: 844 },
         isMobile: true,

@@ -1,6 +1,6 @@
 {
   "name": "jp-estoque",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,7 +18,8 @@
     "dev:online": "node integration-tests/run.mjs --serve-online",
     "verify:v07": "npm run test:all && npm run test:integration && npm run test:online",
     "dev:online:stop": "node online-tests/stop.mjs",
-    "verify:v08": "npm run test:all && npm run test:integration && npm run test:online"
+    "verify:v08": "npm run test:all && npm run test:integration && npm run test:online",
+    "verify:v09": "npm run test:all && npm run test:integration && npm run test:online"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
@@ -32,6 +33,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.119.0",
+    "fflate": "0.8.3",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }

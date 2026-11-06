@@ -3,6 +3,7 @@ import type { RemoteProfile } from "./contracts";
 import { hasPermission } from "../access";
 import { roles } from "../types";
 import { OnlineError } from "./online-error";
+import { createOnlineImport } from "./online-import";
 
 export const administrativeEntities = {
   products: {
@@ -168,6 +169,7 @@ export function createOnlineAdministration(
   }
   return {
     verify,
+    import: createOnlineImport(client, verify),
     async snapshot(): Promise<AdministrativeSnapshot> {
       const profile = await verify();
       const [

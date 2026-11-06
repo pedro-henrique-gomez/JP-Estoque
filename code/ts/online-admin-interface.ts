@@ -10,6 +10,8 @@ import { OnlineError } from "./data/online-error";
 import { roleLabels } from "./access";
 import { roles } from "./types";
 import type { RemoteProfile } from "./data/contracts";
+import { mountOnlineImport } from "./online-import-interface";
+import { downloadOnlineImportReport } from "./online-import-report";
 
 export function mountOnlineAdministration(
   host: HTMLElement,
@@ -35,6 +37,7 @@ export function mountOnlineAdministration(
     opened = false,
     busy = false;
   let pending: { action: () => Promise<void>; ticket: number } | null = null;
+  let importer: ReturnType<typeof mountOnlineImport> | null = null;
   const text = (tag: string, value: string) => {
     const node = document.createElement(tag);
     node.textContent = value;
@@ -56,6 +59,8 @@ export function mountOnlineAdministration(
           "Operação não confirmada. Atualize antes de tentar novamente.",
         );
   function close() {
+    importer?.dispose();
+    importer = null;
     ++generation;
     opened = false;
     data = null;
@@ -73,6 +78,8 @@ export function mountOnlineAdministration(
         ? `Entre com uma sessão ativa para acessar. ${e.message}`
         : e.message;
     if (["session", "inactive", "permission", "connection"].includes(e.kind)) {
+      importer?.dispose();
+      importer = null;
       content.replaceChildren();
       data = null;
       if (confirmation.open) confirmation.close();
@@ -382,7 +389,7 @@ export function mountOnlineAdministration(
     content.append(
       text(
         "p",
-        "Até 100 eventos mais recentes. Auditoria e registros de importação existentes são somente leitura; não há importação online.",
+        "Até 100 eventos mais recentes. Auditoria e resultados de importações são somente leitura neste histórico.",
       ),
     );
     for (const record of data!.audit) {
@@ -415,11 +422,30 @@ export function mountOnlineAdministration(
     );
     if (!data!.imports.length)
       content.append(text("p", "Nenhum registro de importação online."));
-    for (const record of data!.imports)
-      content.append(text("pre", JSON.stringify(record, null, 2)));
+    for (const record of data!.imports) {
+      const entry = document.createElement("article");
+      entry.className = "online-admin-record";
+      entry.append(text("pre", JSON.stringify(record, null, 2)));
+      content.append(entry);
+      if ((record.summary as { kind?: string })?.kind === "balance_snapshot")
+        entry.append(
+          button("Exportar relatório do lote", async () => {
+            const ticket = generation;
+            try {
+              const report = await backend.import.report(record.id);
+              if (ticket === generation && opened)
+                downloadOnlineImportReport(report);
+            } catch (e) {
+              if (ticket === generation && opened) fail(e);
+            }
+          }),
+        );
+    }
   }
   function render() {
     if (!data || !opened) return;
+    importer?.dispose();
+    importer = null;
     content.replaceChildren();
     const nav = document.createElement("nav");
     nav.className = "online-admin-nav";
@@ -428,10 +454,17 @@ export function mountOnlineAdministration(
       ...Object.entries(administrativeEntities).map(([id, d]) => [id, d.label]),
       ["users", "Usuários e vínculos"],
       ["history", "Histórico"],
+      ["import", "Importação de saldos"],
     ]) {
       const b = button(label, () => {
+        const previous = section;
         section = id;
-        render();
+        if (previous === "import" && id !== "import") {
+          importer?.dispose();
+          importer = null;
+          content.replaceChildren();
+          void load().catch(fail);
+        } else render();
       });
       b.setAttribute("aria-pressed", String(section === id));
       nav.append(b);
@@ -449,10 +482,17 @@ export function mountOnlineAdministration(
           ? "Usuários e vínculos"
           : section === "history"
             ? "Histórico de auditoria"
-            : administrativeEntities[section as AdministrativeEntity].label,
+            : section === "import"
+              ? "Importação de fotografia de saldos"
+              : administrativeEntities[section as AdministrativeEntity].label,
       ),
     );
-    if (section === "users") users();
+    if (section === "import") {
+      const root = document.createElement("div");
+      root.id = "onlineImportRoot";
+      content.append(root);
+      importer = mountOnlineImport(root, backend.import, data.contracts, fail);
+    } else if (section === "users") users();
     else if (section === "history") history();
     else records(section as AdministrativeEntity);
   }
@@ -463,7 +503,7 @@ export function mountOnlineAdministration(
     data = next;
     render();
     message.textContent =
-      "Perfil administrativo confirmado no banco. Cadastros online disponíveis; saldos e importação não são editados aqui.";
+      "Perfil administrativo confirmado no banco. Cadastros online disponíveis. Fotografias de saldos exigem a seção de importação e confirmação.";
   }
   return {
     close,

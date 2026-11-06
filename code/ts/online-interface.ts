@@ -14,7 +14,7 @@ export async function mountOnline(configuration: OnlineConfiguration) {
   document.querySelector(".nav")!.innerHTML =
     '<button class="active" id="onlineConsult">Consultar materiais</button><button id="onlineAdmin">Administração</button>';
   document.querySelector(".sidefoot")!.textContent =
-    "v0.8 experimental · Supabase local · Somente dados fictícios";
+    "v0.9 experimental · Supabase local · Somente dados fictícios";
   main.innerHTML = `<header class="top"><div><p class="eyebrow">JP ENGENHARIA E PROJETOS / ESTOQUE</p><h1>Consulta de materiais</h1><p>Ambiente experimental de desenvolvimento. Sem uso em produção.</p></div><span class="pill">Supabase local · Consulta online</span></header>
     <p id="onlineStatus" class="notice" role="status" aria-live="polite">Verificando sessão…</p>
     <section id="onlineLogin" class="panel online-login" hidden aria-labelledby="loginTitle"><h2 id="loginTitle">Entrar no Supabase local</h2><p>Use uma identidade fictícia provisionada no ambiente local. Este formulário realiza autenticação real.</p><form id="loginForm"><label class="label" for="email">Email</label><input id="email" type="email" autocomplete="username" required /><label class="label" for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required /><button type="submit" class="btn primary">Entrar</button></form></section>

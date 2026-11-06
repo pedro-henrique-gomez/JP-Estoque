@@ -129,7 +129,7 @@ export async function prepareOnlineFixture() {
         "select version from supabase_migrations.schema_migrations order by version",
       )
     ).rows;
-    assert.equal(versions.length, 4);
+    assert.equal(versions.length, p.migrations.length);
     const hash = (b) => createHash("sha256").update(b).digest("hex");
     assert.equal(
       hash(await readFile("supabase/config.toml")),
