@@ -9,9 +9,17 @@ import {
 import { blockedReport } from "./cases.mjs";
 import { assertWorkspace } from "./safety.mjs";
 const root = process.cwd();
+const manual = process.argv.includes("--serve-online");
+const online = manual || process.argv.includes("--online-ui");
+const reportPath = manual
+  ? ".integration-local/manual-results.json"
+  : online
+    ? "test-results/online-results.json"
+    : "test-results/integration-results.json";
 await mkdir(".integration-local", { recursive: true });
 await mkdir("test-results", { recursive: true });
 const lock = await open(".integration-local/run.lock", "wx");
+await lock.writeFile(JSON.stringify({ pid: process.pid, manual }));
 const invoke = (file, args, env = process.env) =>
   new Promise((done, reject) => {
     const child = spawn(file, args, {
@@ -19,39 +27,76 @@ const invoke = (file, args, env = process.env) =>
       windowsHide: true,
       stdio: "inherit",
     });
+    activeChild = child;
     child.on("error", reject);
     child.on("exit", (code) =>
-      code === 0 ? done() : reject(Error(`Child process failed (${code})`)),
+      code === 0 ||
+      (manual && stopping && args.includes("online-tests/run.mjs"))
+        ? done()
+        : reject(Error(`Child process failed (${code})`)),
     );
   });
 let started = false;
+let activeChild;
+let stopping = false;
+process.on("SIGINT", () => {
+  stopping = true;
+  activeChild?.kill("SIGTERM");
+});
 try {
   const evidence = await preflight(root);
   if (!evidence.runtimeReady) {
     await writeFile(
-      "test-results/integration-results.json",
+      reportPath,
       JSON.stringify(blockedReport(evidence), null, 2),
     );
     process.exitCode = 2;
   } else {
     await writeFile(
-      "test-results/integration-results.json",
+      reportPath,
       JSON.stringify({ status: "running", executed: 0, passed: 0 }),
     );
     started = true;
-    await invoke(process.execPath, ["integration-tests/start-local.mjs"]);
-    await invoke(process.execPath, ["integration-tests/execute-local.mjs"]);
+    await invoke(process.execPath, ["integration-tests/start-local.mjs"], {
+      ...process.env,
+      JP_LOCAL_JWT_TTL: online ? "180" : "60",
+    });
+    if (manual) {
+      const p = JSON.parse(
+        await readFile(".integration-local/current.json", "utf8"),
+      );
+      await writeFile(
+        ".integration-local/manual-session.json",
+        JSON.stringify({ ...p, managerPid: process.pid }, null, 2),
+      );
+    }
+    await invoke(process.execPath, [
+      online ? "online-tests/run.mjs" : "integration-tests/execute-local.mjs",
+      ...(manual ? ["--serve"] : []),
+    ]);
+    if (manual)
+      await writeFile(
+        reportPath,
+        JSON.stringify(
+          {
+            status: "stopped",
+            scope: "manual-local-experiment",
+            executed: 0,
+            passed: 0,
+          },
+          null,
+          2,
+        ),
+      );
   }
 } catch (e) {
   console.error(redactDiagnostic(e.message));
   const report = JSON.parse(
-    await readFile("test-results/integration-results.json", "utf8").catch(
-      () => "{}",
-    ),
+    await readFile(reportPath, "utf8").catch(() => "{}"),
   );
   if (report.status === "running" || !report.status)
     await writeFile(
-      "test-results/integration-results.json",
+      reportPath,
       JSON.stringify(
         {
           status: "blocked",

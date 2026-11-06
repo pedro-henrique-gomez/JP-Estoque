@@ -17,6 +17,6 @@ export async function checkPorts(ports) {
       server.once("error", () =>
         reject(Error(`Required local port ${port} unavailable`)),
       );
-      server.listen(port, "0.0.0.0", () => server.close(done));
+      server.listen(port, "127.0.0.1", () => server.close(done));
     });
 }

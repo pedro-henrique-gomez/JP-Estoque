@@ -30,10 +30,11 @@ console.log(
     " MiB; selected ports free",
 );
 let c = await readFile(join(p.workspace, "supabase/config.toml"), "utf8");
+const jwtTtl = process.env.JP_LOCAL_JWT_TTL === "180" ? 180 : 60;
 c = c
   .replace("[api]", "[api]\nport = 56321")
   .replace("[db]", "[db]\nport = 56322\nshadow_port = 56320")
-  .replace("[auth]", "[auth]\njwt_expiry = 60");
+  .replace("[auth]", `[auth]\njwt_expiry = ${jwtTtl}`);
 c +=
   "\n[studio]\nenabled = false\n[storage]\nenabled = false\n[realtime]\nenabled = false\n[local_smtp]\nenabled = false\n[edge_runtime]\nenabled = false\n[db.pooler]\nenabled = false\n";
 await writeFile(join(p.workspace, "supabase/config.toml"), c);

@@ -8,7 +8,7 @@ export function createBackend(
 ) {
   if (configuration.mode !== "demo")
     throw new Error(
-      "Modo online desativado na v0.6. O acesso online da aplicação ainda não foi implementado; nenhuma conexão foi iniciada.",
+      "Modo online desativado neste adaptador de demonstração. A rota experimental exige configuração explícita de desenvolvimento; nenhuma conexão foi iniciada.",
     );
   return Object.freeze({
     mode: "demo" as const,

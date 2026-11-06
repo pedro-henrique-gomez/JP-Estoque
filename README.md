@@ -1,6 +1,12 @@
-# JP Estoque 0.6 - Supabase local validado
+# JP Estoque 0.7 — autenticação e consulta Supabase local experimental
 
-Protótipo local com a identidade visual da JP, materiais e usuários fictícios. Não há autenticação ou banco compartilhado. A seleção de perfil **não é login**; botões e filtros de frontend não protegem dados reais.
+Protótipo com a identidade visual da JP e dados fictícios. O modo demonstração é o padrão: sua seleção de perfil **não é login**, e seus botões/filtros não protegem dados reais. A v0.7 acrescenta login e consulta reais no Supabase local, exclusivamente por configuração explícita de desenvolvimento. Não há publicação nem banco remoto.
+
+`npm run dev` mantém a demonstração. `npm run dev:online` cria um ambiente local descartável com Auth/PostgREST e abre a possibilidade de testar a interface em `http://127.0.0.1:5183/code/html/index.html`. O terminal informa somente o caminho local das credenciais fictícias, sem imprimir senhas ou segredos. Docker Linux e portas livres são necessários. O online é somente leitura nesta versão; a administração/importação demonstrativa continua preservada.
+
+Configuração, segurança e limites: [autenticação local v0.7](docs/autenticacao-local-v07.md). Validação: `npm run verify:v07`; [resultados](docs/relatorio-v07.md). Não pronto para produção.
+
+Depois de interromper o launcher online com Ctrl+C, execute `npm run dev:online:stop` para confirmar a limpeza do stack descartável no Windows. Esse comando preserva backups e recusa encerrar uma execução ainda ativa ou diferente.
 
 ```text
 code/html/       Página

@@ -3,6 +3,47 @@
   color: #171717;
   background: #f5f6f7;
 }
+.online-login {
+  max-width: 540px;
+  margin: 20px auto;
+}
+.online-login input {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 12px;
+}
+.online-login button {
+  margin-top: 8px;
+}
+.online-session {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.online-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+.online-material {
+  overflow-wrap: anywhere;
+}
+.online-detail {
+  width: min(620px, calc(100% - 24px));
+  max-height: 85vh;
+  overflow: auto;
+  border: 1px solid #888;
+  border-radius: 12px;
+  padding: 24px;
+}
+.online-detail::backdrop {
+  background: #0009;
+}
+[hidden] {
+  display: none !important;
+}
 * {
   box-sizing: border-box;
 }
