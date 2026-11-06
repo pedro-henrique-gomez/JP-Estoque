@@ -1,6 +1,6 @@
 {
   "name": "jp-estoque",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,7 +17,8 @@
     "test:online": "node integration-tests/run.mjs --online-ui",
     "dev:online": "node integration-tests/run.mjs --serve-online",
     "verify:v07": "npm run test:all && npm run test:integration && npm run test:online",
-    "dev:online:stop": "node online-tests/stop.mjs"
+    "dev:online:stop": "node online-tests/stop.mjs",
+    "verify:v08": "npm run test:all && npm run test:integration && npm run test:online"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",

@@ -26,6 +26,9 @@ export default class SafeOnlineReporter {
   onTestEnd(test, result) {
     const passed = result.status === test.expectedStatus;
     const entry = {
+      suite: test.location.file.endsWith("administration.spec.js")
+        ? "administration"
+        : "authentication",
       title: test.title,
       project: test.parent.project()?.name,
       status: passed ? "passed" : result.status,

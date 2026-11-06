@@ -62,14 +62,14 @@ try {
     const passed =
       code === 0 &&
       results.status === "passed" &&
-      results.stats.expected === 18 &&
+      results.stats.expected === 44 &&
       results.stats.unexpected === 0 &&
       results.stats.skipped === 0;
     await writeFile(
       "test-results/online-results.json",
       JSON.stringify(
         {
-          version: "0.7.0",
+          version: "0.8.0",
           status: passed ? "passed" : "failed",
           executed: results.stats.expected + results.stats.unexpected,
           passed: results.stats.expected,

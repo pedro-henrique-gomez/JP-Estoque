@@ -230,7 +230,7 @@ test("inactive user and user without contracts have explicit messages", async ({
   );
 });
 
-test("owner sees all contracts without online write controls", async ({
+test("owner sees all contracts and approved administration without stock or import controls", async ({
   page,
 }) => {
   await login(page, "owner");
@@ -243,10 +243,10 @@ test("owner sees all contracts without online write controls", async ({
     "Perfil administrativo confirmado",
   );
   await expect(page.locator("#onlineAdminMessage")).toContainText(
-    "somente consulta",
+    "Cadastros online disponíveis",
   );
   await expect(
-    page.getByRole("button", { name: /Importar|Salvar|Excluir/ }),
+    page.getByRole("button", { name: /Importar|movimentar|Editar saldo/i }),
   ).toHaveCount(0);
 });
 

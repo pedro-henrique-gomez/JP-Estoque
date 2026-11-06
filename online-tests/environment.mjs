@@ -43,7 +43,17 @@ export async function prepareOnlineFixture() {
     anon: s.ANON_KEY,
   };
   try {
-    for (const role of ["reader", "owner", "inactive", "no-contract"]) {
+    for (const role of [
+      "reader",
+      "owner",
+      "inactive",
+      "no-contract",
+      "administrator",
+      "coordinator",
+      "director",
+      "warehouse",
+      "planning",
+    ]) {
       const email = `v07-${role}-${randomUUID()}@example.invalid`,
         password = randomBytes(24).toString("hex");
       const res = await fetch(s.API_URL + "/auth/v1/admin/users", {
@@ -64,7 +74,14 @@ export async function prepareOnlineFixture() {
           identity.id,
           "Ficticio " + role,
           email,
-          role === "owner" ? "proprietario" : "funcionario_autorizado",
+          {
+            owner: "proprietario",
+            administrator: "administrador",
+            coordinator: "coordenador",
+            director: "diretor",
+            warehouse: "almoxarife",
+            planning: "planejamento",
+          }[role] || "funcionario_autorizado",
           role !== "inactive",
         ],
       );

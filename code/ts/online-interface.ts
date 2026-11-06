@@ -5,8 +5,8 @@ import {
   type OnlineRow,
 } from "./data/online";
 import type { OnlineConfiguration } from "./data/online-config";
-import { hasPermission, roleLabels } from "./access";
-import type { User } from "./types";
+import { roleLabels } from "./access";
+import { mountOnlineAdministration } from "./online-admin-interface";
 
 export async function mountOnline(configuration: OnlineConfiguration) {
   const backend = createOnlineBackend(configuration, window.sessionStorage);
@@ -14,7 +14,7 @@ export async function mountOnline(configuration: OnlineConfiguration) {
   document.querySelector(".nav")!.innerHTML =
     '<button class="active" id="onlineConsult">Consultar materiais</button><button id="onlineAdmin">Administração</button>';
   document.querySelector(".sidefoot")!.textContent =
-    "v0.7 experimental · Supabase local · Somente dados fictícios";
+    "v0.8 experimental · Supabase local · Somente dados fictícios";
   main.innerHTML = `<header class="top"><div><p class="eyebrow">JP ENGENHARIA E PROJETOS / ESTOQUE</p><h1>Consulta de materiais</h1><p>Ambiente experimental de desenvolvimento. Sem uso em produção.</p></div><span class="pill">Supabase local · Consulta online</span></header>
     <p id="onlineStatus" class="notice" role="status" aria-live="polite">Verificando sessão…</p>
     <section id="onlineLogin" class="panel online-login" hidden aria-labelledby="loginTitle"><h2 id="loginTitle">Entrar no Supabase local</h2><p>Use uma identidade fictícia provisionada no ambiente local. Este formulário realiza autenticação real.</p><form id="loginForm"><label class="label" for="email">Email</label><input id="email" type="email" autocomplete="username" required /><label class="label" for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required /><button type="submit" class="btn primary">Entrar</button></form></section>
@@ -40,7 +40,25 @@ export async function mountOnline(configuration: OnlineConfiguration) {
   const setStatus = (text: string) => {
     status.textContent = text;
   };
+  const administrativeUI = mountOnlineAdministration(
+    administration,
+    backend.administration,
+    (error) => {
+      snapshot = null;
+      inventory.hidden = true;
+      el("onlineResults").replaceChildren();
+      el("detailBody").replaceChildren();
+      el("onlineIdentity").textContent = "";
+      contract.replaceChildren();
+      category.replaceChildren();
+      if (dialog.open) dialog.close();
+      setStatus(error.message);
+      login.hidden = error.kind !== "session";
+      controls.hidden = error.kind === "session";
+    },
+  );
   function protect() {
+    administrativeUI.close();
     snapshot = null;
     inventory.hidden = true;
     administration.hidden = true;
@@ -50,16 +68,6 @@ export async function mountOnline(configuration: OnlineConfiguration) {
     contract.replaceChildren();
     category.replaceChildren();
     if (dialog.open) dialog.close();
-  }
-  function user(): User | null {
-    const p = snapshot?.profile;
-    return p
-      ? {
-          ...p,
-          status: p.active ? "ativo" : "inativo",
-          authorizedContractIds: snapshot!.contracts.map((c) => c.id),
-        }
-      : null;
   }
   function selectOptions(
     select: HTMLSelectElement,
@@ -178,6 +186,10 @@ export async function mountOnline(configuration: OnlineConfiguration) {
   }
   async function refresh() {
     if (loading || signedOut) return;
+    if (administrativeUI.isOpen()) {
+      await administrativeUI.revalidate();
+      return;
+    }
     loading = true;
     const ticket = ++generation;
     const previousContract = contract.value,
@@ -274,18 +286,12 @@ export async function mountOnline(configuration: OnlineConfiguration) {
     void refresh();
   };
   el("onlineConsult").onclick = () => {
-    administration.hidden = true;
-    if (snapshot) inventory.hidden = false;
-    else void refresh();
+    administrativeUI.close();
+    void refresh();
   };
   el("onlineAdmin").onclick = () => {
     inventory.hidden = true;
-    administration.hidden = false;
-    el("onlineAdminMessage").textContent = !snapshot
-      ? "Entre com uma sessão ativa para acessar."
-      : hasPermission(user(), "manage_users")
-        ? "Perfil administrativo confirmado no banco. A v0.7 online oferece somente consulta; cadastros, importação e gerenciamento online não estão habilitados."
-        : "Acesso administrativo não autorizado para este perfil.";
+    void administrativeUI.open();
   };
   search.oninput = render;
   contract.onchange = render;

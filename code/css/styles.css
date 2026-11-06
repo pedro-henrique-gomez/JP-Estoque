@@ -41,6 +41,42 @@
 .online-detail::backdrop {
   background: #0009;
 }
+.online-admin-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.online-admin-nav [aria-pressed="true"] {
+  background: #111;
+  color: white;
+}
+.online-admin-form {
+  display: grid;
+  gap: 8px;
+  max-width: 640px;
+  margin: 16px 0;
+}
+.online-admin-form input,
+.online-admin-form select {
+  padding: 10px;
+  width: 100%;
+}
+.online-admin-record {
+  padding: 16px;
+  margin: 12px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.online-admin-record button {
+  margin: 4px;
+}
+.online-admin-record pre,
+.online-detail pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 [hidden] {
   display: none !important;
 }

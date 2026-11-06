@@ -1,10 +1,10 @@
-# JP Estoque 0.7 — autenticação e consulta Supabase local experimental
+# JP Estoque 0.8 — administração Supabase local experimental
 
-Protótipo com a identidade visual da JP e dados fictícios. O modo demonstração é o padrão: sua seleção de perfil **não é login**, e seus botões/filtros não protegem dados reais. A v0.7 acrescenta login e consulta reais no Supabase local, exclusivamente por configuração explícita de desenvolvimento. Não há publicação nem banco remoto.
+Protótipo com a identidade visual da JP e dados fictícios. O modo demonstração é o padrão: sua seleção de perfil **não é login**, e seus botões/filtros não protegem dados reais. O modo online mantém login/consulta reais da v0.7 e acrescenta administração na v0.8, exclusivamente em Supabase local e desenvolvimento explícito. Não há publicação nem banco remoto.
 
-`npm run dev` mantém a demonstração. `npm run dev:online` cria um ambiente local descartável com Auth/PostgREST e abre a possibilidade de testar a interface em `http://127.0.0.1:5183/code/html/index.html`. O terminal informa somente o caminho local das credenciais fictícias, sem imprimir senhas ou segredos. Docker Linux e portas livres são necessários. O online é somente leitura nesta versão; a administração/importação demonstrativa continua preservada.
+`npm run dev` mantém a demonstração. `npm run dev:online` cria um ambiente local descartável com Auth/PostgREST para testar a interface em `http://127.0.0.1:5183/code/html/index.html`. O terminal informa somente o caminho local das credenciais fictícias, sem imprimir senhas ou segredos. Docker Linux e portas livres são necessários. Proprietário e administrador podem manter catálogo global, contratos, fornecedores, localizações, perfis/vínculos de outros usuários e ler auditoria. Saldos, movimentações e importação online não são editados nesse painel. A demonstração e a importação Excel local foram preservadas.
 
-Configuração, segurança e limites: [autenticação local v0.7](docs/autenticacao-local-v07.md). Validação: `npm run verify:v07`; [resultados](docs/relatorio-v07.md). Não pronto para produção.
+Configuração, permissões e limites atuais: [administração local v0.8](docs/administracao-local-v08.md). Validação: `npm run verify:v08`; [resultados](docs/relatorio-v08.md). As quatro migrações/RLS permanecem intactas; os mecanismos existentes já contemplavam as operações necessárias. Não pronto para produção. [Resultados históricos v0.7](docs/relatorio-v07.md).
 
 Depois de interromper o launcher online com Ctrl+C, execute `npm run dev:online:stop` para confirmar a limpeza do stack descartável no Windows. Esse comando preserva backups e recusa encerrar uma execução ainda ativa ou diferente.
 

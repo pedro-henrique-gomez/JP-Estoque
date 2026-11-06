@@ -2,6 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 import type { OnlineConfiguration } from "./online-config";
 import { localApiUrl } from "./online-config";
 import type { RemoteProfile, RemoteProduct } from "./contracts";
+import { OnlineError } from "./online-error";
+import { createOnlineAdministration } from "./online-administration";
+export { OnlineError } from "./online-error";
 export interface OnlineContract {
   id: string;
   name: string;
@@ -40,14 +43,6 @@ export interface OnlineSnapshot {
   locations: OnlineLocation[];
   suppliers: OnlineSupplier[];
   references: OnlineReference[];
-}
-export class OnlineError extends Error {
-  constructor(
-    public kind: "session" | "inactive" | "permission" | "connection",
-    message: string,
-  ) {
-    super(message);
-  }
 }
 export function createOnlineBackend(
   configuration: OnlineConfiguration,
@@ -152,6 +147,7 @@ export function createOnlineBackend(
   }
   return {
     client,
+    administration: createOnlineAdministration(client, verifiedProfile),
     async login(email: string, password: string) {
       const result = await client.auth.signInWithPassword({ email, password });
       if (result.error)

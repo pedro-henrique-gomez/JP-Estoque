@@ -1,0 +1,567 @@
+{
+  "version": "0.8.0",
+  "baseCommit": "4019ec4",
+  "recordedAt": "2026-11-06T05:46:44.590Z",
+  "command": "npm run verify:v08",
+  "exitCode": 0,
+  "status": "passed",
+  "automated": {
+    "passed": 125,
+    "files": 12,
+    "previous": 102,
+    "new": 23
+  },
+  "nativePostgres": {
+    "passed": 446,
+    "failed": 0,
+    "version": "PostgreSQL 17.11 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+    "auth": "native test fixture, not counted as real authentication"
+  },
+  "demoChromium": {
+    "startTime": "2026-11-06T05:32:26.341Z",
+    "duration": 62768.138,
+    "expected": 72,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "realV06Http": {
+    "executed": 18,
+    "passed": 18,
+    "failed": 0,
+    "cases": [
+      {
+        "id": "login-correct",
+        "status": "passed",
+        "durationMs": 64
+      },
+      {
+        "id": "login-incorrect",
+        "status": "passed",
+        "durationMs": 59
+      },
+      {
+        "id": "jwt-valid",
+        "status": "passed",
+        "durationMs": 22
+      },
+      {
+        "id": "jwt-invalid",
+        "status": "passed",
+        "durationMs": 23
+      },
+      {
+        "id": "refresh",
+        "status": "passed",
+        "durationMs": 83
+      },
+      {
+        "id": "logout",
+        "status": "passed",
+        "durationMs": 73
+      },
+      {
+        "id": "inactive",
+        "status": "passed",
+        "durationMs": 129
+      },
+      {
+        "id": "no-contract",
+        "status": "passed",
+        "durationMs": 111
+      },
+      {
+        "id": "metadata",
+        "status": "passed",
+        "durationMs": 107
+      },
+      {
+        "id": "self-promotion",
+        "status": "passed",
+        "durationMs": 187
+      },
+      {
+        "id": "cross-contract",
+        "status": "passed",
+        "durationMs": 23
+      },
+      {
+        "id": "rpc-allowed",
+        "status": "passed",
+        "durationMs": 116
+      },
+      {
+        "id": "rpc-denied",
+        "status": "passed",
+        "durationMs": 103
+      },
+      {
+        "id": "revocation",
+        "status": "passed",
+        "durationMs": 57
+      },
+      {
+        "id": "api-exposure",
+        "status": "passed",
+        "durationMs": 146
+      },
+      {
+        "id": "history",
+        "status": "passed",
+        "durationMs": 49
+      },
+      {
+        "id": "profile-matrix",
+        "status": "passed",
+        "durationMs": 512
+      },
+      {
+        "id": "jwt-expired",
+        "status": "passed",
+        "durationMs": 90073
+      }
+    ],
+    "postgres": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+    "services": [
+      "public.ecr.aws/supabase/postgrest:v16.5",
+      "public.ecr.aws/supabase/gotrue:v2.197.0",
+      "public.ecr.aws/supabase/kong:2.8.1",
+      "public.ecr.aws/supabase/postgres:17.11.0.011"
+    ],
+    "preservation": {
+      "configUnchanged": true,
+      "migrationsUnchanged": true,
+      "hashes": [
+        {
+          "name": "20261105000100_model.sql",
+          "sha256": "a042583e123e9f1fc927576a9a843c6a80fcc6b1a28889a6eba4c305803feed5"
+        },
+        {
+          "name": "20261105000200_rls.sql",
+          "sha256": "431c4d3dfab112c6a24e5f44e0c588f8d947a3ca4df1701f05f8da5bf48a1632"
+        },
+        {
+          "name": "20261105000300_administration_audit.sql",
+          "sha256": "fe9433436cdc8e80cb649cbb98d6b29fb3ab3c6d97195285b05b8faace1ea4b9"
+        },
+        {
+          "name": "20261105000400_read_projection.sql",
+          "sha256": "fda73a1668f5179cb519d329cd23179776449e33fb6f1a4f650c8ff238dba0f3"
+        }
+      ]
+    },
+    "rls": [
+      {
+        "relname": "audit_events",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "balance_references",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "contract_balances",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "contracts",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "import_batches",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "import_rows",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "locations",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "products",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "profiles",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "suppliers",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "system_settings",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "user_contracts",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      }
+    ]
+  },
+  "realOnlineChromium": {
+    "version": "0.8.0",
+    "status": "passed",
+    "executed": 44,
+    "passed": 44,
+    "failed": 0,
+    "skipped": 0,
+    "configUnchanged": true,
+    "migrationsUnchanged": true,
+    "realAuth": true,
+    "realPostgrest": true,
+    "traceEnabled": false,
+    "stats": {
+      "expected": 44,
+      "unexpected": 0,
+      "skipped": 0,
+      "duration": 206228
+    },
+    "authenticationRegression": [
+      {
+        "suite": "authentication",
+        "title": "protected initial page and wrong login preserve localStorage",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 503
+      },
+      {
+        "suite": "authentication",
+        "title": "real login, RLS isolation, references, filters and responsive details",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 759
+      },
+      {
+        "suite": "authentication",
+        "title": "verified session recovery ignores forged local identity and logout protects pages",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 920
+      },
+      {
+        "suite": "authentication",
+        "title": "inactive user and user without contracts have explicit messages",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 840
+      },
+      {
+        "suite": "authentication",
+        "title": "owner sees all contracts and approved administration without stock or import controls",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 753
+      },
+      {
+        "suite": "authentication",
+        "title": "revocation affects the existing browser session on next query",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 3475
+      },
+      {
+        "suite": "authentication",
+        "title": "network failure removes stale protected data and retry recovers",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 749
+      },
+      {
+        "suite": "authentication",
+        "title": "invalidated refresh session returns to login on recovery",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 659
+      },
+      {
+        "suite": "authentication",
+        "title": "SDK automatically renews legitimate tokens and keeps consultation working",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 60570
+      },
+      {
+        "suite": "authentication",
+        "title": "protected initial page and wrong login preserve localStorage",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 542
+      },
+      {
+        "suite": "authentication",
+        "title": "real login, RLS isolation, references, filters and responsive details",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 739
+      },
+      {
+        "suite": "authentication",
+        "title": "verified session recovery ignores forged local identity and logout protects pages",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 923
+      },
+      {
+        "suite": "authentication",
+        "title": "inactive user and user without contracts have explicit messages",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 765
+      },
+      {
+        "suite": "authentication",
+        "title": "owner sees all contracts and approved administration without stock or import controls",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 754
+      },
+      {
+        "suite": "authentication",
+        "title": "revocation affects the existing browser session on next query",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 3542
+      },
+      {
+        "suite": "authentication",
+        "title": "network failure removes stale protected data and retry recovers",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 778
+      },
+      {
+        "suite": "authentication",
+        "title": "invalidated refresh session returns to login on recovery",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 684
+      },
+      {
+        "suite": "authentication",
+        "title": "SDK automatically renews legitimate tokens and keeps consultation working",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 60494
+      }
+    ],
+    "administration": [
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for reader",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 18845
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for coordinator",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 832
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for director",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 830
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for warehouse",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 827
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for planning",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 856
+      },
+      {
+        "suite": "administration",
+        "title": "CRUD of global catalog contracts suppliers and locations for owner without balance changes",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 4738
+      },
+      {
+        "suite": "administration",
+        "title": "CRUD of global catalog contracts suppliers and locations for administrator without balance changes",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 4554
+      },
+      {
+        "suite": "administration",
+        "title": "links use RPC and revoke access in an existing legitimate session",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 1399
+      },
+      {
+        "suite": "administration",
+        "title": "profile RPC maintains self-administration restrictions and can manage other users",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 1553
+      },
+      {
+        "suite": "administration",
+        "title": "audit immutable even for both managers and integrity errors preserve existing data",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 1366
+      },
+      {
+        "suite": "administration",
+        "title": "revoked manager cannot submit the form or bypass it through HTTP",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 2848
+      },
+      {
+        "suite": "administration",
+        "title": "zero affected rows are never presented as a successful update",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 1300
+      },
+      {
+        "suite": "administration",
+        "title": "logout clears administrative drafts and preserves demo storage",
+        "project": "online-desktop",
+        "status": "passed",
+        "durationMs": 1000
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for reader",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 902
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for coordinator",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 796
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for director",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 796
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for warehouse",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 799
+      },
+      {
+        "suite": "administration",
+        "title": "administration denied by UI and real RLS for planning",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 815
+      },
+      {
+        "suite": "administration",
+        "title": "CRUD of global catalog contracts suppliers and locations for owner without balance changes",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 4627
+      },
+      {
+        "suite": "administration",
+        "title": "CRUD of global catalog contracts suppliers and locations for administrator without balance changes",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 4682
+      },
+      {
+        "suite": "administration",
+        "title": "links use RPC and revoke access in an existing legitimate session",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 1375
+      },
+      {
+        "suite": "administration",
+        "title": "profile RPC maintains self-administration restrictions and can manage other users",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 1542
+      },
+      {
+        "suite": "administration",
+        "title": "audit immutable even for both managers and integrity errors preserve existing data",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 1353
+      },
+      {
+        "suite": "administration",
+        "title": "revoked manager cannot submit the form or bypass it through HTTP",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 2924
+      },
+      {
+        "suite": "administration",
+        "title": "zero affected rows are never presented as a successful update",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 1379
+      },
+      {
+        "suite": "administration",
+        "title": "logout clears administrative drafts and preserves demo storage",
+        "project": "online-mobile",
+        "status": "passed",
+        "durationMs": 964
+      }
+    ]
+  },
+  "sqlChanges": {
+    "migrationsChanged": false,
+    "policiesChanged": false,
+    "newRpcs": 0,
+    "reason": "Existing RLS CRUD grants, admin_save_profile and admin_set_user_contract cover the requested operations"
+  },
+  "preservation": {
+    "demoDefault": true,
+    "legacyDemoStorageUnchanged": true,
+    "excelImportUnchanged": true,
+    "stockBalancesUnchangedByAdministrativeCrud": true,
+    "oldV07EvidenceUnchanged": true
+  },
+  "limits": [
+    "Local development only; no production or remote connection",
+    "No stock movement, procurement, RM/OC process or online Excel import",
+    "Auth account provisioning and login email/password changes remain outside browser",
+    "Audit UI shows latest 100 events; no advanced history export",
+    "No optimistic form version control or load testing"
+  ]
+}
