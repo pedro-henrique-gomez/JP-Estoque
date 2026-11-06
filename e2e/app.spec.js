@@ -56,9 +56,15 @@ test.beforeEach(async ({ page }) => {
 test.afterEach(async ({ page }) => {
   expect(page.__errors).toEqual([]);
 });
+async function selectUser(page, id) {
+  const simulator = page.locator("#demoSimulator");
+  if (!(await simulator.evaluate((element) => element.open)))
+    await simulator.locator(":scope > summary").click();
+  await page.locator("#demoUser").selectOption(id);
+}
 async function loadDemo(page) {
   await page.goto(path);
-  await page.locator("#demoUser").selectOption("demo-7");
+  await selectUser(page, "demo-7");
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#loadDemo").click();
   await expect(page.locator("#statProducts")).toHaveText("7");
@@ -84,13 +90,13 @@ test("carregamento explícito não duplica fixtures; perfil, filtros e pesquisa 
 }) => {
   await loadDemo(page);
   await expect(page.locator("#loadDemo")).toBeHidden();
-  await page.locator("#demoUser").selectOption("demo-1");
+  await selectUser(page, "demo-1");
   await expect(page.locator("#statProducts")).toHaveText("2");
   await expect(page.locator("#contract option")).toHaveCount(2);
   await page.locator("#search").fill("sensor");
   await expect(page.locator("#statProducts")).toHaveText("1");
   await page.locator("#search").fill("");
-  await page.locator("#demoUser").selectOption("demo-5");
+  await selectUser(page, "demo-5");
   await page.locator("#contract").selectOption("Contrato B");
   await expect(page.locator("#statProducts")).toHaveText("2");
   await page.locator("#category").selectOption("Elétrica");
@@ -110,7 +116,7 @@ test("perfil inativo oculta registros sem apagá-los", async ({ page }) => {
     (key) => localStorage.getItem(key),
     stockKey,
   );
-  await page.locator("#demoUser").selectOption("demo-inativo");
+  await selectUser(page, "demo-inativo");
   await expect(page.locator("#statProducts")).toHaveText("0");
   await expect(page.locator("#dataStatus")).toContainText("inativo");
   expect(
@@ -247,7 +253,7 @@ test("JSON incompatível preservado, aviso explícito e carga de demonstração 
   await seed(context, { [stockKey]: incompatible });
   await page.goto(path);
   await expect(page.locator("#dataStatus")).toContainText("incompatíveis");
-  await page.locator("#demoUser").selectOption("demo-7");
+  await selectUser(page, "demo-7");
   await expect(page.locator("#loadDemo")).toBeDisabled();
   await page.reload();
   expect(
@@ -308,10 +314,10 @@ test("cadastro administrativo persiste após atualização da página", async ({
   await expect(page.locator("#rows")).toContainText(
     "Material criado no navegador",
   );
-  await page.locator("#demoUser").selectOption("demo-6");
+  await selectUser(page, "demo-6");
   await page.locator('[data-page="admin"]').click();
   await page.locator('[data-tab="users"]').click();
   await expect(page.locator("#users")).toContainText("Ana Souza");
-  await page.locator("#demoUser").selectOption("demo-5");
+  await selectUser(page, "demo-5");
   await expect(page.locator("#adminArea")).toBeHidden();
 });

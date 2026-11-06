@@ -17,6 +17,24 @@ export default defineConfig({
   projects: [
     { name: "chromium-vite", use: { baseURL: "http://localhost:5180" } },
     { name: "chromium-build", use: { baseURL: "http://localhost:5181" } },
+    {
+      name: "chromium-mobile-vite",
+      use: {
+        baseURL: "http://localhost:5180",
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+    {
+      name: "chromium-mobile-build",
+      use: {
+        baseURL: "http://localhost:5181",
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
   ],
   webServer: [
     {

@@ -1,4 +1,4 @@
-# JP Estoque 0.3 — importação de planilhas
+# JP Estoque 0.4 — terminal de consulta
 
 Protótipo local com a identidade visual da JP, materiais e usuários fictícios. Não há autenticação ou banco compartilhado. A seleção de perfil **não é login**; botões e filtros de frontend não protegem dados reais.
 
@@ -46,3 +46,9 @@ Fluxo, regras, limites, licença e arquitetura estão em [docs/importacao-v03.md
 Bases válidas sem data e usuários com IDs personalizados agora são exibidos sem fallback destrutivo. JSON incompatível ou versões futuras são preservados e sinalizados; não limpe o localStorage. Quando a base de materiais está vazia, selecione Proprietário/Administrador e use **Carregar dados fictícios em base vazia**, com confirmação. A abertura da página não preenche ou grava materiais automaticamente.
 
 Para testes reais: `npx playwright install chromium` e `npm run test:browser`. A suíte executa Chromium contra o Vite e contra o build em perfis isolados. Resultados e evidências: [diagnóstico da inicialização](docs/correcao-inicializacao.md).
+
+## Interface v0.4
+
+Pesquisa em destaque, simulador recolhível com perfil visível no resumo, filtros com limpeza rápida, resultados adaptados a cartões no celular e detalhes com saldos por contrato autorizado. O atalho `/` foca a pesquisa. Diálogos mantêm o foco, fecham com Escape e retornam ao controle anterior. As abas administrativas têm navegação por setas, Home e End.
+
+Dados, chaves e esquema do localStorage não mudaram nesta versão. As permissões aprovadas permanecem; a seleção de perfil continua sendo demonstração, não login. Detalhes, validação e limitações: [interface v0.4](docs/interface-v04.md).

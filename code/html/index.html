@@ -8,6 +8,7 @@
     <link rel="icon" href="../../img/logo.png" />
   </head>
   <body>
+    <a class="skip-link" href="#search">Ir para a pesquisa de materiais</a>
     <noscript
       >O JavaScript está desativado. Ative-o para consultar os dados locais;
       nenhum cadastro foi apagado.</noscript
@@ -18,14 +19,14 @@
           <img src="../../img/logo.png" alt="Logotipo JP" />
           <div><b>JP ESTOQUE</b><small>Engenharia e Projetos</small></div>
         </div>
-        <nav class="nav">
+        <nav class="nav" aria-label="Navegação principal">
           <button class="active" data-page="consulta">
             ⌕ &nbsp; Consultar materiais</button
           ><button data-page="fornecedores">▣ &nbsp; Fornecedores</button
           ><button data-page="admin">⚙ &nbsp; Administração</button>
         </nav>
         <div class="sidefoot">
-          Protótipo v0.3 · Dados locais e fictícios<br />Não substitui o
+          Protótipo v0.4 · Dados locais e fictícios<br />Não substitui o
           processo atual da JP.
         </div>
       </aside>
@@ -33,76 +34,101 @@
         <div id="startupError" class="notice" role="alert" hidden></div>
         <header class="top">
           <div>
-            <h1 id="heading">Terminal de consulta</h1>
+            <p class="eyebrow">JP ENGENHARIA E PROJETOS / ESTOQUE</p>
+            <h1 id="heading">Consulta de materiais</h1>
             <div class="muted" id="subtitle">
               Encontre materiais, saldos e localizações por contrato.
             </div>
           </div>
           <span class="pill">● Demonstração local</span>
         </header>
-        <section class="panel demo-access" aria-labelledby="demoTitle">
-          <h2 id="demoTitle">Simulador de permissões · v0.3</h2>
-          <p class="notice">
-            Demonstração com usuários fictícios. A seleção de perfis não é
-            login. Os filtros apenas simulam permissões; não protegem dados.
-            Armazenamento local exclusivo para testes.
-          </p>
-          <label class="label" for="demoUser"
-            >Selecionar usuário fictício e perfil (demonstração)</label
-          >
-          <select id="demoUser"></select>
-          <p id="demoSummary" class="subtle" aria-live="polite"></p>
-          <details>
-            <summary>Visualizar permissões por perfil e contrato</summary>
-            <p id="permissionContext" class="subtle"></p>
-            <div class="tablewrap">
-              <table>
-                <caption>
-                  Matriz demonstrativa de acesso
-                </caption>
-                <thead>
-                  <tr id="permissionHead">
-                    <th>Perfil</th>
-                    <th>Contrato A</th>
-                    <th>Contrato B</th>
-                    <th>Contrato C</th>
-                    <th>Contrato D</th>
-                    <th>Cadastros</th>
-                  </tr>
-                </thead>
-                <tbody id="permissionRows"></tbody>
-              </table>
-            </div>
-          </details>
-        </section>
+        <details id="demoSimulator" class="panel demo-access">
+          <summary>
+            <span id="demoTitle">Simulador de permissões</span
+            ><span id="demoActiveProfile" class="tag">Demonstração</span
+            ><span class="demo-warning">Não é login</span>
+          </summary>
+          <div class="demo-content">
+            <p class="notice">
+              Demonstração com usuários fictícios. A seleção de perfis não é
+              login. Os filtros apenas simulam permissões; não protegem dados.
+              Armazenamento local exclusivo para testes.
+            </p>
+            <label class="label" for="demoUser"
+              >Selecionar usuário fictício e perfil (demonstração)</label
+            >
+            <select id="demoUser"></select>
+            <p id="demoSummary" class="subtle" aria-live="polite"></p>
+            <details>
+              <summary>Visualizar permissões por perfil e contrato</summary>
+              <p id="permissionContext" class="subtle"></p>
+              <div class="tablewrap">
+                <table>
+                  <caption>
+                    Matriz demonstrativa de acesso
+                  </caption>
+                  <thead>
+                    <tr id="permissionHead">
+                      <th>Perfil</th>
+                      <th>Contrato A</th>
+                      <th>Contrato B</th>
+                      <th>Contrato C</th>
+                      <th>Contrato D</th>
+                      <th>Cadastros</th>
+                    </tr>
+                  </thead>
+                  <tbody id="permissionRows"></tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+        </details>
         <section id="consulta">
-          <div class="panel">
+          <div class="panel search-panel">
+            <div class="search-heading">
+              <div>
+                <p class="eyebrow">TERMINAL DE CONSULTA</p>
+                <h2>Encontre o material que você precisa</h2>
+              </div>
+              <span class="keyboard-hint"><kbd>/</kbd> para pesquisar</span>
+            </div>
+            <div class="filters">
+              <div>
+                <label class="label" for="search"
+                  >Buscar por código, material, fabricante, OC ou NF</label
+                ><input
+                  id="search"
+                  type="search"
+                  autocomplete="off"
+                  aria-describedby="searchHelp"
+                  placeholder="Digite um código, descrição ou fabricante…"
+                />
+              </div>
+              <div>
+                <label class="label" for="contract">Contrato</label
+                ><select id="contract"></select>
+              </div>
+              <div>
+                <label class="label" for="category">Categoria</label
+                ><select id="category"></select>
+              </div>
+            </div>
+            <div class="search-footer">
+              <span id="searchHelp" class="subtle"
+                >Pesquise também por localização ou referências de OC e
+                NF.</span
+              ><button id="clearFilters" class="linkbtn" type="button">
+                Limpar pesquisa e filtros
+              </button>
+            </div>
+          </div>
+          <div class="panel data-status">
             <p id="dataStatus" role="status" aria-live="polite">
               Inicializando dados locais…
             </p>
             <button id="loadDemo" class="btn alt" type="button" hidden>
               Carregar dados fictícios em base vazia
             </button>
-          </div>
-          <div class="panel">
-            <div class="filters">
-              <div>
-                <label class="label"
-                  >Buscar por código, material, fabricante, OC ou NF</label
-                ><input
-                  id="search"
-                  placeholder="Ex.: cabo, disjuntor, OC-001..."
-                />
-              </div>
-              <div>
-                <label class="label">Contrato</label
-                ><select id="contract"></select>
-              </div>
-              <div>
-                <label class="label">Categoria</label
-                ><select id="category"></select>
-              </div>
-            </div>
           </div>
           <div class="stats">
             <div class="panel stat">
@@ -120,15 +146,21 @@
               ><span>Dados locais do navegador</span>
             </div>
           </div>
-          <div class="panel">
+          <div class="panel results-panel">
             <div class="toolbar">
-              <h3>Materiais cadastrados</h3>
+              <div>
+                <h2>Materiais cadastrados</h2>
+                <p id="resultsCount" class="subtle" aria-live="polite"></p>
+              </div>
               <button class="btn alt smallbtn" id="exportConsult">
                 Exportar CSV
               </button>
             </div>
             <div class="tablewrap">
-              <table>
+              <table
+                class="materials-table"
+                aria-label="Materiais e saldos nos contratos autorizados"
+              >
                 <thead>
                   <tr>
                     <th>Código</th>
@@ -170,8 +202,12 @@
               compartilhado ou autenticação real. Não insira dados reais.
             </div>
             <div id="adminFormHost"></div>
-            <div class="tabs">
-              <button class="active" data-tab="records">Cadastros</button
+            <div
+              class="tabs"
+              role="tablist"
+              aria-label="Seções administrativas"
+            >
+              <button class="active" data-tab="records">Materiais</button
               ><button data-tab="import">Importar Excel/CSV</button>
               <button data-tab="users">Usuários e permissões</button>
               <button data-tab="suppliersAdmin">Fornecedores</button>
@@ -210,7 +246,7 @@
             </div>
             <div id="import" class="hidden" data-admin-panel>
               <div class="panel">
-                <h3>Importação com conferência prévia · v0.3</h3>
+                <h3>Importação com conferência prévia</h3>
                 <p class="muted">
                   Aceita .xlsx, .xls e .csv, lidos localmente com SheetJS
                   Community Edition (Apache-2.0), sem envio do arquivo. Somente
@@ -343,8 +379,15 @@
         </div>
       </main>
     </div>
-    <div id="modal" class="modal hidden">
-      <div class="panel">
+    <div
+      id="modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+      tabindex="-1"
+    >
+      <div class="panel" tabindex="-1">
         <div class="modalhead">
           <h3 id="modalTitle">Detalhes</h3>
           <button id="close" class="btn alt smallbtn">Fechar ✕</button>

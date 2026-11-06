@@ -34,6 +34,11 @@ export function mountDemoAccess(onChange: () => void): void {
     if (selected) select.value = selected.id;
     else select.add(new Option("Nenhum usuário disponível", ""));
     select.disabled = !selected;
+    const profileLabel = document.getElementById("demoActiveProfile");
+    if (profileLabel)
+      profileLabel.textContent = selected
+        ? roleLabels[selected.role]
+        : "Nenhum perfil";
     const summary = document.getElementById("demoSummary")!;
     summary.textContent = selected
       ? `${selected.id} · ${selected.email} · ${selected.status === "ativo" ? "Ativo" : "Inativo"} · ${hasGlobalRead(selected) ? "Consulta a todos os contratos cadastrados" : "Consulta aos contratos autorizados"}`

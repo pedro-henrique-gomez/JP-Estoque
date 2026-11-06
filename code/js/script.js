@@ -16,6 +16,14 @@ import {
 import { demoAdminStorage } from "../ts/demo-admin-storage.ts";
 import { DemoAdministration } from "../ts/demo-administration.ts";
 import { mountAdministration } from "../ts/admin-interface.ts";
+import { mountInterface } from "../ts/interface.ts";
+
+const ui = mountInterface(() => {
+  document.getElementById("search").value = "";
+  document.getElementById("contract").value = "";
+  document.getElementById("category").value = "";
+  render();
+});
 
 const seed = [
   {
@@ -229,6 +237,8 @@ function render() {
     true,
   );
   const r = filtered();
+  document.getElementById("resultsCount").textContent =
+    `${r.length} registro${r.length === 1 ? "" : "s"} de saldo nos contratos autorizados`;
   document.getElementById("statProducts").textContent = r.length;
   document.getElementById("statContracts").textContent = new Set(
     r.map((x) => x.contract),
@@ -263,10 +273,10 @@ function render() {
     ? r
         .map(
           (x) =>
-            `<tr><td class="code">${esc(x.code)}</td><td><b>${esc(x.name)}</b><br><span class="muted">${esc(x.category)}</span></td><td>${esc(x.contract)}</td><td><b>${esc(x.qty)}</b> ${esc(x.unit)}</td><td>${esc(x.location)}</td><td><button class="linkbtn" onclick="detail(${x.id})">Visualizar</button></td></tr>`,
+            `<tr><td data-label="Código" class="code">${esc(x.code)}</td><td data-label="Material"><span class="material-title">${esc(x.name)}</span><span class="material-meta">${esc(x.category || "Categoria não informada")} · ${esc(x.brand || "Fabricante não informado")}</span></td><td data-label="Contrato">${esc(x.contract)}</td><td data-label="Saldo"><span class="balance">${esc(x.qty)}</span> ${esc(x.unit)}</td><td data-label="Localização">${esc(x.location || "Não informada")}</td><td data-label="Detalhes"><button class="linkbtn" aria-label="Visualizar ${esc(x.name)}" onclick="detail(${x.id})">Visualizar</button></td></tr>`,
         )
         .join("")
-    : '<tr><td colspan="6" class="empty">Nenhum material encontrado.</td></tr>';
+    : `<tr><td colspan="6" class="empty"><strong>${!data.length ? "Sua base ainda não tem materiais" : !visibleData().length ? "Nenhum material disponível para este perfil" : "Nenhum material encontrado"}</strong><span>${!data.length ? "Os dados existentes são preservados. Para testar, use o carregamento explícito de dados fictícios." : !visibleData().length ? "Confira o perfil e os contratos autorizados no simulador de demonstração." : "Experimente outro código, descrição ou fabricante, ou limpe os filtros da pesquisa."}</span></td></tr>`;
   document.getElementById("adminRows").innerHTML = (
     canManage(currentDemoUser()) ? data : []
   )
@@ -286,32 +296,48 @@ function render() {
 function showModal(title, body) {
   document.getElementById("modalTitle").textContent = title;
   document.getElementById("modalBody").innerHTML = body;
-  document.getElementById("modal").classList.remove("hidden");
+  ui.open();
 }
 function hideModal() {
-  document.getElementById("modal").classList.add("hidden");
+  ui.close();
 }
 window.detail = (id) => {
   const x = data.find((v) => v.id === id);
   if (!x || !canReadMaterial(x.contract)) return;
+  const balances = visibleData().filter(
+    (material) => codeKey(material.code) === codeKey(x.code),
+  );
   showModal(
     x.name,
     `<div class="detail">${[
       ["Código", x.code],
+      ["Descrição", x.name],
       ["Categoria", x.category],
-      ["Contrato", x.contract],
-      ["Saldo registrado", x.qty + " " + x.unit],
-      ["Localização", x.location],
       ["Fabricante", x.brand],
+      ["Unidade", x.unit],
       ["Modelo / referência", x.model],
-      ["Fornecedor", x.supplier],
-      ["OC de referência", x.oc],
-      ["NF de referência", x.nf],
-      ["Atualização da base", updated],
+      ["Última atualização disponível", updated],
     ]
       .map(
         ([a, b]) =>
           `<div><small>${esc(a)}</small><b>${esc(b || "Não informado")}</b></div>`,
+      )
+      .join(
+        "",
+      )}</div><h3 class="section-title">Saldos por contrato</h3><p class="subtle">Somente contratos autorizados para o perfil selecionado.</p><div class="contract-balances">${balances
+      .map(
+        (balance) =>
+          `<article class="contract-card"><header><h4>${esc(balance.contract)}</h4><span class="balance">${esc(balance.qty)} ${esc(balance.unit)}</span></header><dl>${[
+            ["Localização", balance.location],
+            ["Fornecedor", balance.supplier],
+            ["OC de referência", balance.oc],
+            ["NF de referência", balance.nf],
+          ]
+            .map(
+              ([label, value]) =>
+                `<div><dt>${esc(label)}</dt><dd>${esc(value || "Não informado")}</dd></div>`,
+            )
+            .join("")}</dl></article>`,
       )
       .join(
         "",
@@ -351,10 +377,11 @@ window.edit = (id) => {
   };
   showModal(
     x.id ? "Editar material" : "Cadastrar material",
-    `<form id="editForm"><div class="formgrid">${fields.map(([key, label]) => `<div class="${key === "name" ? "wide" : ""}"><label class="label">${label}</label><input name="${key}" ${["code", "name", "contract", "qty"].includes(key) ? "required" : ""} ${key === "qty" ? 'type="number" min="0" step="any"' : ""} value="${esc(x[key])}"></div>`).join("")}</div><p><button class="btn" type="submit">Salvar cadastro</button></p></form>`,
+    `<form id="editForm"><div class="formgrid">${fields.map(([key, label]) => `<div class="${key === "name" ? "wide" : ""}"><label class="label" for="material-${key}">${label}</label><input id="material-${key}" name="${key}" ${["code", "name", "contract", "qty"].includes(key) ? "required" : ""} ${key === "qty" ? 'type="number" min="0" step="any"' : ""} value="${esc(x[key])}"></div>`).join("")}</div><p><button class="btn" type="submit">Salvar cadastro</button></p></form>`,
   );
   const contractInput = document.querySelector('#editForm [name="contract"]');
   const contractSelect = document.createElement("select");
+  contractSelect.id = contractInput.id;
   contractSelect.name = "contract";
   contractSelect.required = true;
   contracts.forEach((contract) =>
@@ -422,7 +449,7 @@ document.querySelectorAll("[data-page]").forEach(
         document.getElementById(s).classList.toggle("hidden", s !== p),
       );
       document.getElementById("heading").textContent = {
-        consulta: "Terminal de consulta",
+        consulta: "Consulta de materiais",
         fornecedores: "Fornecedores",
         admin: "Área administrativa",
       }[p];
